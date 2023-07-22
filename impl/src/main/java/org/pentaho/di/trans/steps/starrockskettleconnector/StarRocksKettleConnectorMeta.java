@@ -1,16 +1,25 @@
 package org.pentaho.di.trans.steps.starrockskettleconnector;
 
+import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionSupported;
+import org.pentaho.di.core.row.RowMetaInterface;
+import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
+import org.pentaho.di.trans.Trans;
+import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepMeta;
+import org.pentaho.di.trans.step.StepDataInterface;
+import org.pentaho.di.trans.step.StepInterface;
+import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
@@ -79,25 +88,25 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
      * The maximum size of data that can be loaded into StarRocks at a time.
      */
     @Injection(name = "MAXBYTES")
-    private Long maxbytes;
+    private long maxbytes;
 
     /**
      * The maximum number of rows that can be loaded into StarRocks at one time.
      */
     @Injection(name = "MAXROWS")
-    private Long maxrows;
+    private long maxrows;
 
     /**
      * Timeout period for connecting to the load-url.
      */
     @Injection(name = "CONNECT_TIMEOUT")
-    private Long connecttimeout;
+    private long connecttimeout;
 
     /**
      * Stream Load timeout period, in seconds.
      */
     @Injection(name = "TIMEOUT")
-    private Long timeout;
+    private long timeout;
 
     /**
      * Field name of the target table
@@ -212,56 +221,56 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
     /**
      * @return Return the maximum size of data that can be loaded into StarRocks at a time.
      */
-    public Long getMaxbytes() {
+    public long getMaxbytes() {
         return maxbytes;
     }
 
     /**
      * @param maxbytes The maximum size of data that can be loaded into StarRocks at a time.
      */
-    public void setMaxbytes(Long maxbytes) {
+    public void setMaxbytes(long maxbytes) {
         this.maxbytes = maxbytes;
     }
 
     /**
      * @return Return the maximum number of rows that can be loaded into StarRocks at one time.
      */
-    public Long getMaxrows() {
+    public long getMaxrows() {
         return maxrows;
     }
 
     /**
      * @param maxrows The maximum number of rows that can be loaded into StarRocks at one time.
      */
-    public void setMaxrows(Long maxrows) {
+    public void setMaxrows(long maxrows) {
         this.maxrows = maxrows;
     }
 
     /**
      * @return Return timeout period for connecting to the load-url.
      */
-    public Long getConnecttimeout() {
+    public long getConnecttimeout() {
         return connecttimeout;
     }
 
     /**
      * @param connecttimeout Timeout period for connecting to the load-url.
      */
-    public void setConnecttimeout(Long connecttimeout) {
+    public void setConnecttimeout(long connecttimeout) {
         this.connecttimeout = connecttimeout;
     }
 
     /**
      * @return Return Stream Load timeout period.
      */
-    public Long getTimeout() {
+    public long getTimeout() {
         return timeout;
     }
 
     /**
      * @param timeout Stream Load timeout period.
      */
-    public void setTimeout(Long timeout) {
+    public void setTimeout(long timeout) {
         this.timeout = timeout;
     }
 
@@ -389,9 +398,76 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
 
     public void readRep(Repository rep, IMetaStore metaStore, ObjectId id_step) throws KettleException{
         try {
+            String loadurl1=rep.getStepAttributeString(id_step,"loadurl");
+            loadurl=Arrays.asList(loadurl1.split(";"));
+            jdbcurl=rep.getStepAttributeString(id_step,"jdbcurl");
+            databasename=rep.getStepAttributeString(id_step,"databasename");
+            tablename=rep.getStepAttributeString(id_step,"tablename");
+            user=rep.getStepAttributeString(id_step,"user");
+            password=rep.getStepAttributeString(id_step,"password");
+            format=rep.getStepAttributeString(id_step,"format");
+            maxbytes=Long.valueOf(rep.getStepAttributeString(id_step,"maxbytes"));
+            maxrows=Long.valueOf(rep.getStepAttributeString(id_step,"maxrows"));
+            connecttimeout=Long.valueOf(rep.getStepAttributeString(id_step,"connecttimeout"));
+            timeout=Long.valueOf(rep.getStepAttributeString(id_step,"timeout"));
 
+            int nrvalues = rep.countNrStepAttributes( id_step, "stream_name" );
+
+            allocate( nrvalues );
+
+            for ( int i = 0; i < nrvalues; i++ ) {
+                fieldTable[i] = rep.getStepAttributeString( id_step, i, "stream_name" );
+                fieldStream[i] = rep.getStepAttributeString( id_step, i, "field_name" );
+                if ( fieldStream[i] == null ) {
+                    fieldStream[i] = fieldTable[i];
+                }
+            }
         }catch (Exception e){
-            throw new KettleException(BaseMessages.getString(PKG,"StarRocksKettleConnectorMeta.Exception.UnexpectedErrorReadingStepInfoFromRepository"));
+            throw new KettleException(BaseMessages.getString(PKG,"StarRocksKettleConnectorMeta.Exception.UnexpectedErrorReadingStepInfoFromRepository"),e);
         }
+    }
+
+    public void saveRep(Repository rep,IMetaStore metaStore,ObjectId id_transformation,ObjectId id_step)throws KettleException{
+        try {
+            String loadurl1=String.join(";",loadurl);
+            rep.saveStepAttribute(id_transformation,id_step,"loadurl",loadurl1);
+            rep.saveStepAttribute(id_transformation,id_step,"jdbcurl",jdbcurl);
+            rep.saveStepAttribute(id_transformation,id_step,"databasename",databasename);
+            rep.saveStepAttribute(id_transformation,id_step,"tablename",tablename);
+            rep.saveStepAttribute(id_transformation,id_step,"user",user);
+            rep.saveStepAttribute(id_transformation,id_step,"password",password);
+            rep.saveStepAttribute(id_transformation,id_step,"format",format);
+            rep.saveStepAttribute(id_transformation,id_step,"maxbytes",maxbytes);
+            rep.saveStepAttribute(id_transformation,id_step,"maxrows",maxrows);
+            rep.saveStepAttribute(id_transformation,id_step,"connecttimeout",connecttimeout);
+            rep.saveStepAttribute(id_transformation,id_step,"timeout",timeout);
+
+            for ( int i = 0; i < fieldTable.length; i++ ) {
+                rep.saveStepAttribute( id_transformation, id_step, i, "stream_name", fieldTable[i] );
+                rep.saveStepAttribute( id_transformation, id_step, i, "field_name", fieldStream[i] );
+            }
+        }catch (Exception e){
+            throw new KettleException(BaseMessages.getString(PKG,"StarRocksKettleConnectorMeta.Exception.UnableToSaveStepInfoToRepository")+id_step,e);
+        }
+    }
+
+    public void getFields(RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
+                          VariableSpace space, Repository repository, IMetaStore metaStore ) throws KettleStepException {
+        // Default: nothing changes to rowMeta
+    }
+
+    public void check(List<CheckResultInterface> remarks, TransMeta transMeta, StepMeta stepMeta, RowMetaInterface prev,
+                      String[] input, String[] output, RowMetaInterface info, VariableSpace space, Repository repository,
+                      IMetaStore metaStore ) {
+        // TODO:每个Step都有机会验证其设置并验证用户给出的配置是否合理。
+    }
+
+    public StepInterface getStep(StepMeta stepMeta, StepDataInterface stepDataInterface, int cnr, TransMeta transMeta,
+                                 Trans trans ) {
+        return new StarRocksKettleConnector( stepMeta, stepDataInterface, cnr, transMeta, trans );
+    }
+
+    public StepDataInterface getStepData() {
+        return new StarRocksKettleConnectorData();
     }
 }

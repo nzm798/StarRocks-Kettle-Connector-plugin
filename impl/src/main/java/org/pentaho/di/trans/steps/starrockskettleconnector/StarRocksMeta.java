@@ -19,11 +19,11 @@ public interface StarRocksMeta extends StepMetaInterface {
 
     String getFormat();
 
-    Long getMaxbytes();
+    long getMaxbytes();
 
-    Long getMaxrows();
+    long getMaxrows();
 
-    Long getConnecttimeout();
+    long getConnecttimeout();
 
-    Long getTimeout();
+    long getTimeout();
 }
