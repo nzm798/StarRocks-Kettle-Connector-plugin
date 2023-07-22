@@ -2,10 +2,7 @@ package org.pentaho.di.trans.steps.starrockskettleconnector;
 
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
-import org.pentaho.di.trans.step.BaseDatabaseStep;
-import org.pentaho.di.trans.step.StepDataInterface;
-import org.pentaho.di.trans.step.StepInterface;
-import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.di.trans.step.*;
 
 public class StarRocksKettleConnector extends BaseDatabaseStep implements StepInterface {
 
@@ -17,5 +14,11 @@ public class StarRocksKettleConnector extends BaseDatabaseStep implements StepIn
         super(stepMeta,stepDataInterface,copyNr,transMeta,trans);
     }
 
+    @Override
+    public boolean init(StepMetaInterface smi,StepDataInterface sdi){
+        meta=(StarRocksKettleConnectorMeta) smi;
+        data=(StarRocksKettleConnectorData) sdi;
 
+
+    }
 }
