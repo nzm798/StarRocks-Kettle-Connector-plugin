@@ -1,5 +1,6 @@
 package org.pentaho.di.trans.steps.starrockskettleconnector;
 
+import org.pentaho.di.core.CheckResult;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
@@ -460,6 +461,10 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
                       String[] input, String[] output, RowMetaInterface info, VariableSpace space, Repository repository,
                       IMetaStore metaStore ) {
         // TODO:每个Step都有机会验证其设置并验证用户给出的配置是否合理。
+        CheckResult cr;
+        String error_message = "";
+
+
     }
 
     public StepInterface getStep(StepMeta stepMeta, StepDataInterface stepDataInterface, int cnr, TransMeta transMeta,
