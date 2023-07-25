@@ -10,6 +10,7 @@ import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.row.RowMetaInterface;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
@@ -21,6 +22,9 @@ import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksJdbcConnectionOptions;
+import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksJdbcConnectionProvider;
+import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksQueryVisitor;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
@@ -54,6 +58,10 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
      */
     @Injection(name = "JDBC_URL")
     private String jdbcurl;
+    /**
+     * Query the Starrocks field information
+     */
+    private StarRocksQueryVisitor starRocksQueryVisitor;
 
     /**
      * Database name of the stream load.
@@ -147,6 +155,22 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
      */
     public void setJdbcurl(String jdbcurl) {
         this.jdbcurl = jdbcurl;
+    }
+
+    /**
+     *
+     * @return Return the Starrocks visitor
+     */
+    public StarRocksQueryVisitor getStarRocksQueryVisitor(){
+        return starRocksQueryVisitor;
+    }
+
+    /**
+     *
+     * @param starRocksQueryVisitor The Starrocks visitor:Used to find field information in Starrocks.
+     */
+    public void setStarRocksQueryVisitor(StarRocksQueryVisitor starRocksQueryVisitor){
+        this.starRocksQueryVisitor=starRocksQueryVisitor;
     }
 
     /**
@@ -307,6 +331,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         fieldTable=null;
         loadurl = null;
         jdbcurl = null;
+        starRocksQueryVisitor=null;
         databasename = "";
         tablename = BaseMessages.getString(PKG, "StarRocksKettleConnectorMeta.DefaultTableName");
         user = "root";
@@ -423,6 +448,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
                     fieldStream[i] = fieldTable[i];
                 }
             }
+
         }catch (Exception e){
             throw new KettleException(BaseMessages.getString(PKG,"StarRocksKettleConnectorMeta.Exception.UnexpectedErrorReadingStepInfoFromRepository"),e);
         }
@@ -460,9 +486,51 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
     public void check(List<CheckResultInterface> remarks, TransMeta transMeta, StepMeta stepMeta, RowMetaInterface prev,
                       String[] input, String[] output, RowMetaInterface info, VariableSpace space, Repository repository,
                       IMetaStore metaStore ) {
-        // TODO:每个Step都有机会验证其设置并验证用户给出的配置是否合理。
         CheckResult cr;
         String error_message = "";
+
+        if (jdbcurl==null){
+            if (starRocksQueryVisitor==null) {
+                // Used to find field information in Starrocks.
+                StarRocksJdbcConnectionOptions jdbcConnectionOptions = new StarRocksJdbcConnectionOptions(this.user, this.user, this.password);
+                StarRocksJdbcConnectionProvider jdbcConnectionProvider = new StarRocksJdbcConnectionProvider(jdbcConnectionOptions);
+                starRocksQueryVisitor = new StarRocksQueryVisitor(jdbcConnectionProvider, this.databasename, this.tablename);
+            }
+            if (!Utils.isEmpty(tablename)){
+                cr=new CheckResult( CheckResultInterface.TYPE_RESULT_OK, BaseMessages.getString( PKG,
+                        "StarRocksKettleConnectorMeta.CheckResult.TableNameOK" ), stepMeta );
+                remarks.add( cr );
+                try {
+                    if (!starRocksQueryVisitor.getAllTables().contains(this.tablename)){
+                        error_message=BaseMessages.getString(PKG,"StarRocksKettleConnectorMeta.CheckResult.NoNeedTable")+tablename;
+                        cr=new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR,error_message,stepMeta);
+                        remarks.add(cr);
+                    }
+                }catch (Exception e){
+                    error_message=BaseMessages.getString(PKG,"StarRocksKettleConnectorMeta.CheckResult.ErrorConnJDBC")+e.getMessage();
+                    cr=new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR,error_message,stepMeta);
+                    remarks.add(cr);
+                }
+                // TODO:验证输入字段
+            }
+        }else {
+            cr=new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR,BaseMessages.getString(PKG,"StarRocksKettleConnectorMeta.CheckResult.NoJDBCUrl"),stepMeta);
+            remarks.add(cr);
+        }
+
+
+        // See if we have input streams leading to this step!
+        if ( input.length > 0 ) {
+            cr =
+                    new CheckResult( CheckResultInterface.TYPE_RESULT_OK, BaseMessages.getString( PKG,
+                            "StarRocksKettleConnectorMeta.CheckResult.StepReceivingInfoFromOtherSteps" ), stepMeta );
+            remarks.add( cr );
+        } else {
+            cr =
+                    new CheckResult( CheckResultInterface.TYPE_RESULT_ERROR, BaseMessages.getString( PKG,
+                            "StarRocksKettleConnectorMeta.CheckResult.NoInputError" ), stepMeta );
+            remarks.add( cr );
+        }
 
 
     }
