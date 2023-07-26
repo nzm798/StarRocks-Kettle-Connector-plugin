@@ -10,6 +10,7 @@ import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.row.RowMetaInterface;
+import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
@@ -22,6 +23,7 @@ import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksDataType;
 import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksJdbcConnectionOptions;
 import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksJdbcConnectionProvider;
 import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksQueryVisitor;
@@ -31,6 +33,7 @@ import org.w3c.dom.Node;
 import java.lang.String;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @Step(id = "StarRocksKettleConnector", name = "BaseStep.TypeLongDesc.StarRocksKettleConnector",
         description = "BaseStep.TypeTooltipDesc.StarRocksKettleConnector",
@@ -158,19 +161,17 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
     }
 
     /**
-     *
      * @return Return the Starrocks visitor
      */
-    public StarRocksQueryVisitor getStarRocksQueryVisitor(){
+    public StarRocksQueryVisitor getStarRocksQueryVisitor() {
         return starRocksQueryVisitor;
     }
 
     /**
-     *
      * @param starRocksQueryVisitor The Starrocks visitor:Used to find field information in Starrocks.
      */
-    public void setStarRocksQueryVisitor(StarRocksQueryVisitor starRocksQueryVisitor){
-        this.starRocksQueryVisitor=starRocksQueryVisitor;
+    public void setStarRocksQueryVisitor(StarRocksQueryVisitor starRocksQueryVisitor) {
+        this.starRocksQueryVisitor = starRocksQueryVisitor;
     }
 
     /**
@@ -328,10 +329,10 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
     }
 
     public void setDefault() {
-        fieldTable=null;
+        fieldTable = null;
         loadurl = null;
         jdbcurl = null;
-        starRocksQueryVisitor=null;
+        starRocksQueryVisitor = null;
         databasename = "";
         tablename = BaseMessages.getString(PKG, "StarRocksKettleConnectorMeta.DefaultTableName");
         user = "root";
@@ -400,144 +401,223 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
     public String getXML() {
         StringBuilder retval = new StringBuilder(300);
 
-        String loadurl1= String.join(";",loadurl);
-        retval.append( "    " ).append( XMLHandler.addTagValue( "loadurl", loadurl1 ) );
-        retval.append( "    " ).append( XMLHandler.addTagValue( "jdbcurl", jdbcurl ) );
-        retval.append( "    " ).append( XMLHandler.addTagValue( "databasename", databasename ) );
-        retval.append( "    " ).append( XMLHandler.addTagValue( "tablename", tablename ) );
-        retval.append( "    " ).append( XMLHandler.addTagValue( "user", user ) );
-        retval.append( "    " ).append( XMLHandler.addTagValue( "password", password ) );
-        retval.append( "    " ).append( XMLHandler.addTagValue( "format", format ) );
-        retval.append( "    " ).append( XMLHandler.addTagValue( "maxbytes", maxbytes ) );
-        retval.append( "    " ).append( XMLHandler.addTagValue( "maxrows", maxrows ) );
-        retval.append( "    " ).append( XMLHandler.addTagValue( "connecttimeout", connecttimeout ) );
-        retval.append( "    " ).append( XMLHandler.addTagValue( "timeout", timeout ) );
+        String loadurl1 = String.join(";", loadurl);
+        retval.append("    ").append(XMLHandler.addTagValue("loadurl", loadurl1));
+        retval.append("    ").append(XMLHandler.addTagValue("jdbcurl", jdbcurl));
+        retval.append("    ").append(XMLHandler.addTagValue("databasename", databasename));
+        retval.append("    ").append(XMLHandler.addTagValue("tablename", tablename));
+        retval.append("    ").append(XMLHandler.addTagValue("user", user));
+        retval.append("    ").append(XMLHandler.addTagValue("password", password));
+        retval.append("    ").append(XMLHandler.addTagValue("format", format));
+        retval.append("    ").append(XMLHandler.addTagValue("maxbytes", maxbytes));
+        retval.append("    ").append(XMLHandler.addTagValue("maxrows", maxrows));
+        retval.append("    ").append(XMLHandler.addTagValue("connecttimeout", connecttimeout));
+        retval.append("    ").append(XMLHandler.addTagValue("timeout", timeout));
 
-        for ( int i = 0; i < fieldTable.length; i++ ) {
-            retval.append( "        " ).append( XMLHandler.addTagValue( "stream_name", fieldTable[i] ) );
-            retval.append( "        " ).append( XMLHandler.addTagValue( "field_name", fieldStream[i] ) );
-            retval.append( "      </mapping>" ).append( Const.CR );
+        for (int i = 0; i < fieldTable.length; i++) {
+            retval.append("        ").append(XMLHandler.addTagValue("stream_name", fieldTable[i]));
+            retval.append("        ").append(XMLHandler.addTagValue("field_name", fieldStream[i]));
+            retval.append("      </mapping>").append(Const.CR);
         }
 
         return retval.toString();
     }
 
-    public void readRep(Repository rep, IMetaStore metaStore, ObjectId id_step) throws KettleException{
+    public void readRep(Repository rep, IMetaStore metaStore, ObjectId id_step) throws KettleException {
         try {
-            String loadurl1=rep.getStepAttributeString(id_step,"loadurl");
-            loadurl=Arrays.asList(loadurl1.split(";"));
-            jdbcurl=rep.getStepAttributeString(id_step,"jdbcurl");
-            databasename=rep.getStepAttributeString(id_step,"databasename");
-            tablename=rep.getStepAttributeString(id_step,"tablename");
-            user=rep.getStepAttributeString(id_step,"user");
-            password=rep.getStepAttributeString(id_step,"password");
-            format=rep.getStepAttributeString(id_step,"format");
-            maxbytes=Long.valueOf(rep.getStepAttributeString(id_step,"maxbytes"));
-            maxrows=Long.valueOf(rep.getStepAttributeString(id_step,"maxrows"));
-            connecttimeout=Long.valueOf(rep.getStepAttributeString(id_step,"connecttimeout"));
-            timeout=Long.valueOf(rep.getStepAttributeString(id_step,"timeout"));
+            String loadurl1 = rep.getStepAttributeString(id_step, "loadurl");
+            loadurl = Arrays.asList(loadurl1.split(";"));
+            jdbcurl = rep.getStepAttributeString(id_step, "jdbcurl");
+            databasename = rep.getStepAttributeString(id_step, "databasename");
+            tablename = rep.getStepAttributeString(id_step, "tablename");
+            user = rep.getStepAttributeString(id_step, "user");
+            password = rep.getStepAttributeString(id_step, "password");
+            format = rep.getStepAttributeString(id_step, "format");
+            maxbytes = Long.valueOf(rep.getStepAttributeString(id_step, "maxbytes"));
+            maxrows = Long.valueOf(rep.getStepAttributeString(id_step, "maxrows"));
+            connecttimeout = Long.valueOf(rep.getStepAttributeString(id_step, "connecttimeout"));
+            timeout = Long.valueOf(rep.getStepAttributeString(id_step, "timeout"));
 
-            int nrvalues = rep.countNrStepAttributes( id_step, "stream_name" );
+            int nrvalues = rep.countNrStepAttributes(id_step, "stream_name");
 
-            allocate( nrvalues );
+            allocate(nrvalues);
 
-            for ( int i = 0; i < nrvalues; i++ ) {
-                fieldTable[i] = rep.getStepAttributeString( id_step, i, "stream_name" );
-                fieldStream[i] = rep.getStepAttributeString( id_step, i, "field_name" );
-                if ( fieldStream[i] == null ) {
+            for (int i = 0; i < nrvalues; i++) {
+                fieldTable[i] = rep.getStepAttributeString(id_step, i, "stream_name");
+                fieldStream[i] = rep.getStepAttributeString(id_step, i, "field_name");
+                if (fieldStream[i] == null) {
                     fieldStream[i] = fieldTable[i];
                 }
             }
 
-        }catch (Exception e){
-            throw new KettleException(BaseMessages.getString(PKG,"StarRocksKettleConnectorMeta.Exception.UnexpectedErrorReadingStepInfoFromRepository"),e);
+        } catch (Exception e) {
+            throw new KettleException(BaseMessages.getString(PKG, "StarRocksKettleConnectorMeta.Exception.UnexpectedErrorReadingStepInfoFromRepository"), e);
         }
     }
 
-    public void saveRep(Repository rep,IMetaStore metaStore,ObjectId id_transformation,ObjectId id_step)throws KettleException{
+    public void saveRep(Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step) throws KettleException {
         try {
-            String loadurl1=String.join(";",loadurl);
-            rep.saveStepAttribute(id_transformation,id_step,"loadurl",loadurl1);
-            rep.saveStepAttribute(id_transformation,id_step,"jdbcurl",jdbcurl);
-            rep.saveStepAttribute(id_transformation,id_step,"databasename",databasename);
-            rep.saveStepAttribute(id_transformation,id_step,"tablename",tablename);
-            rep.saveStepAttribute(id_transformation,id_step,"user",user);
-            rep.saveStepAttribute(id_transformation,id_step,"password",password);
-            rep.saveStepAttribute(id_transformation,id_step,"format",format);
-            rep.saveStepAttribute(id_transformation,id_step,"maxbytes",maxbytes);
-            rep.saveStepAttribute(id_transformation,id_step,"maxrows",maxrows);
-            rep.saveStepAttribute(id_transformation,id_step,"connecttimeout",connecttimeout);
-            rep.saveStepAttribute(id_transformation,id_step,"timeout",timeout);
+            String loadurl1 = String.join(";", loadurl);
+            rep.saveStepAttribute(id_transformation, id_step, "loadurl", loadurl1);
+            rep.saveStepAttribute(id_transformation, id_step, "jdbcurl", jdbcurl);
+            rep.saveStepAttribute(id_transformation, id_step, "databasename", databasename);
+            rep.saveStepAttribute(id_transformation, id_step, "tablename", tablename);
+            rep.saveStepAttribute(id_transformation, id_step, "user", user);
+            rep.saveStepAttribute(id_transformation, id_step, "password", password);
+            rep.saveStepAttribute(id_transformation, id_step, "format", format);
+            rep.saveStepAttribute(id_transformation, id_step, "maxbytes", maxbytes);
+            rep.saveStepAttribute(id_transformation, id_step, "maxrows", maxrows);
+            rep.saveStepAttribute(id_transformation, id_step, "connecttimeout", connecttimeout);
+            rep.saveStepAttribute(id_transformation, id_step, "timeout", timeout);
 
-            for ( int i = 0; i < fieldTable.length; i++ ) {
-                rep.saveStepAttribute( id_transformation, id_step, i, "stream_name", fieldTable[i] );
-                rep.saveStepAttribute( id_transformation, id_step, i, "field_name", fieldStream[i] );
+            for (int i = 0; i < fieldTable.length; i++) {
+                rep.saveStepAttribute(id_transformation, id_step, i, "stream_name", fieldTable[i]);
+                rep.saveStepAttribute(id_transformation, id_step, i, "field_name", fieldStream[i]);
             }
-        }catch (Exception e){
-            throw new KettleException(BaseMessages.getString(PKG,"StarRocksKettleConnectorMeta.Exception.UnableToSaveStepInfoToRepository")+id_step,e);
+        } catch (Exception e) {
+            throw new KettleException(BaseMessages.getString(PKG, "StarRocksKettleConnectorMeta.Exception.UnableToSaveStepInfoToRepository") + id_step, e);
         }
     }
 
     public void getFields(RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
-                          VariableSpace space, Repository repository, IMetaStore metaStore ) throws KettleStepException {
+                          VariableSpace space, Repository repository, IMetaStore metaStore) throws KettleStepException {
         // Default: nothing changes to rowMeta
     }
 
     public void check(List<CheckResultInterface> remarks, TransMeta transMeta, StepMeta stepMeta, RowMetaInterface prev,
                       String[] input, String[] output, RowMetaInterface info, VariableSpace space, Repository repository,
-                      IMetaStore metaStore ) {
+                      IMetaStore metaStore) {
         CheckResult cr;
         String error_message = "";
 
-        if (jdbcurl==null){
-            if (starRocksQueryVisitor==null) {
-                // Used to find field information in Starrocks.
-                StarRocksJdbcConnectionOptions jdbcConnectionOptions = new StarRocksJdbcConnectionOptions(this.user, this.user, this.password);
-                StarRocksJdbcConnectionProvider jdbcConnectionProvider = new StarRocksJdbcConnectionProvider(jdbcConnectionOptions);
-                starRocksQueryVisitor = new StarRocksQueryVisitor(jdbcConnectionProvider, this.databasename, this.tablename);
-            }
-            if (!Utils.isEmpty(tablename)){
-                cr=new CheckResult( CheckResultInterface.TYPE_RESULT_OK, BaseMessages.getString( PKG,
-                        "StarRocksKettleConnectorMeta.CheckResult.TableNameOK" ), stepMeta );
-                remarks.add( cr );
-                try {
-                    if (!starRocksQueryVisitor.getAllTables().contains(this.tablename)){
-                        error_message=BaseMessages.getString(PKG,"StarRocksKettleConnectorMeta.CheckResult.NoNeedTable")+tablename;
-                        cr=new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR,error_message,stepMeta);
+        if (jdbcurl != null) {
+            try {
+                if (starRocksQueryVisitor == null) {
+                    // Used to find field information in Starrocks.
+                    StarRocksJdbcConnectionOptions jdbcConnectionOptions = new StarRocksJdbcConnectionOptions(this.user, this.user, this.password);
+                    StarRocksJdbcConnectionProvider jdbcConnectionProvider = new StarRocksJdbcConnectionProvider(jdbcConnectionOptions);
+                    starRocksQueryVisitor = new StarRocksQueryVisitor(jdbcConnectionProvider, this.databasename, this.tablename);
+                }
+
+                // Verify that the table exists.
+                if (!Utils.isEmpty(tablename)) {
+                    cr = new CheckResult(CheckResultInterface.TYPE_RESULT_OK, BaseMessages.getString(PKG,
+                            "StarRocksKettleConnectorMeta.CheckResult.TableNameOK"), stepMeta);
+                    remarks.add(cr);
+                    try {
+                        if (!starRocksQueryVisitor.getAllTables().contains(this.tablename)) {
+                            error_message = BaseMessages.getString(PKG, "StarRocksKettleConnectorMeta.CheckResult.NoNeedTable") + tablename;
+                            cr = new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR, error_message, stepMeta);
+                            remarks.add(cr);
+                        }
+                    } catch (Exception e) {
+                        error_message = BaseMessages.getString(PKG, "StarRocksKettleConnectorMeta.CheckResult.ErrorConnJDBC") + e.getMessage();
+                        cr = new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR, error_message, stepMeta);
                         remarks.add(cr);
                     }
-                }catch (Exception e){
-                    error_message=BaseMessages.getString(PKG,"StarRocksKettleConnectorMeta.CheckResult.ErrorConnJDBC")+e.getMessage();
-                    cr=new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR,error_message,stepMeta);
+                }
+
+                // Check fields in table
+                boolean first = true;
+                boolean error_found = false;
+                error_message = "";
+
+                Map<String, StarRocksDataType> fielsMap = starRocksQueryVisitor.getFieldMapping();
+                if (fielsMap != null) {
+                    cr = new CheckResult(CheckResultInterface.TYPE_RESULT_OK, BaseMessages.getString(PKG, "StarRocksKettleConnectorMeta.CheckResult.TableExists"), stepMeta);
+                    remarks.add(cr);
+
+                    // How about the fields to insert/dateMask in the table?
+                    first = true;
+                    error_found = false;
+                    error_message = "";
+
+                    for (int i = 0; i < fieldTable.length; i++) {
+                        String field = fieldTable[i];
+
+                        boolean isFieldExists = fielsMap.containsKey(field);
+                        if (!isFieldExists) {
+                            if (first) {
+                                first = false;
+                                error_message += BaseMessages.getString(PKG, "StarRocksKettleConnectorMeta.CheckResult.MissingFieldsToLoadInTargetTable") + Const.CR;
+                            }
+                            error_found = true;
+                            error_message += "\t\t" + field + Const.CR;
+                        }
+
+                    }
+                    if (error_found) {
+                        cr = new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR, error_message, stepMeta);
+                    } else {
+                        cr = new CheckResult(CheckResultInterface.TYPE_RESULT_OK, BaseMessages.getString(PKG, "StarRocksKettleConnectorMeta.CheckResult.AllFieldsFoundInTargetTable"), stepMeta);
+                    }
                     remarks.add(cr);
                 }
-                // TODO:验证输入字段
+
+                // Look up fields in the input stream <prev>
+                if (prev != null && prev.size() > 0) {
+                    cr = new CheckResult(CheckResultInterface.TYPE_RESULT_OK, BaseMessages.getString(PKG, "StarRocksKettleConnectorMeta.CheckResult.StepReceivingDatas", prev.size() + ""), stepMeta);
+                    remarks.add(cr);
+
+                    first = true;
+                    error_found = false;
+                    error_message = "";
+
+                    for (int i = 0; i < fieldStream.length; i++) {
+                        ValueMetaInterface v = prev.searchValueMeta(fieldStream[i]);
+                        if (v == null) {
+                            if (first) {
+                                first = false;
+                                error_message +=
+                                        BaseMessages.getString(PKG, "StarRocksKettleConnectorMeta.CheckResult.MissingFieldsInInput") + Const.CR;
+                            }
+                            error_found = true;
+                            error_message += "\t\t" + fieldStream[i] + Const.CR;
+                        }
+                    }
+                    if (error_found) {
+                        cr = new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR, error_message, stepMeta);
+                    } else {
+                        cr =
+                                new CheckResult(CheckResultInterface.TYPE_RESULT_OK, BaseMessages.getString(PKG,
+                                        "StarRocksKettleConnectorMeta.CheckResult.AllFieldsFoundInInput"), stepMeta);
+                    }
+                    remarks.add(cr);
+                } else {
+                    error_message = BaseMessages.getString(PKG, "StarRocksKettleConnectorMeta.CheckResult.MissingFieldsInInput3") + Const.CR;
+                    cr = new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR, error_message, stepMeta);
+                    remarks.add(cr);
+                }
+            } catch (Exception e) {
+                error_message = BaseMessages.getString(PKG, "StarRocksKettleConnectorMeta.CheckResult.DatabaseErrorOccurred") + e.getMessage();
+                cr = new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR, error_message, stepMeta);
+                remarks.add(cr);
             }
-        }else {
-            cr=new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR,BaseMessages.getString(PKG,"StarRocksKettleConnectorMeta.CheckResult.NoJDBCUrl"),stepMeta);
+        } else {
+            cr = new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR, BaseMessages.getString(PKG, "StarRocksKettleConnectorMeta.CheckResult.NoJDBCUrl"), stepMeta);
             remarks.add(cr);
         }
 
 
         // See if we have input streams leading to this step!
-        if ( input.length > 0 ) {
+        if (input.length > 0) {
             cr =
-                    new CheckResult( CheckResultInterface.TYPE_RESULT_OK, BaseMessages.getString( PKG,
-                            "StarRocksKettleConnectorMeta.CheckResult.StepReceivingInfoFromOtherSteps" ), stepMeta );
-            remarks.add( cr );
+                    new CheckResult(CheckResultInterface.TYPE_RESULT_OK, BaseMessages.getString(PKG,
+                            "StarRocksKettleConnectorMeta.CheckResult.StepReceivingInfoFromOtherSteps"), stepMeta);
+            remarks.add(cr);
         } else {
             cr =
-                    new CheckResult( CheckResultInterface.TYPE_RESULT_ERROR, BaseMessages.getString( PKG,
-                            "StarRocksKettleConnectorMeta.CheckResult.NoInputError" ), stepMeta );
-            remarks.add( cr );
+                    new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR, BaseMessages.getString(PKG,
+                            "StarRocksKettleConnectorMeta.CheckResult.NoInputError"), stepMeta);
+            remarks.add(cr);
         }
 
 
     }
 
     public StepInterface getStep(StepMeta stepMeta, StepDataInterface stepDataInterface, int cnr, TransMeta transMeta,
-                                 Trans trans ) {
-        return new StarRocksKettleConnector( stepMeta, stepDataInterface, cnr, transMeta, trans );
+                                 Trans trans) {
+        return new StarRocksKettleConnector(stepMeta, stepDataInterface, cnr, transMeta, trans);
     }
 
     public StepDataInterface getStepData() {

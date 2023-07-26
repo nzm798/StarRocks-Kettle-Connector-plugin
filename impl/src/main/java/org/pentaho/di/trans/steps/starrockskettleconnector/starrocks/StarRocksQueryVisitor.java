@@ -13,21 +13,21 @@ public class StarRocksQueryVisitor {
     private final String database;
     private final String table;
 
-    public StarRocksQueryVisitor(StarRocksJdbcConnectionProvider jdbcConnProvider,String database,String table){
+    public StarRocksQueryVisitor(StarRocksJdbcConnectionProvider jdbcConnProvider, String database, String table) {
         this.jdbcConnProvider = jdbcConnProvider;
         this.database = database;
         this.table = table;
     }
 
-    public List<String> getAllTables() throws SQLException,ClassNotFoundException{
-        final String query="select 'TABLE_NAME' from 'information_schema'.'TABLES' where 'TABLE_SCHEMA'=? and 'TABLE_TYPE'='BASE TABLE'";
-        List<String> tablenames=new ArrayList<>();
-        PreparedStatement stmt=jdbcConnProvider.getConnection().prepareStatement(query,ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
-        stmt.setString(1,this.database);
-        ResultSet rs=stmt.executeQuery();
-        int currRowIndex=rs.getRow();
+    public List<String> getAllTables() throws SQLException, ClassNotFoundException {
+        final String query = "select `TABLE_NAME` from `information_schema`.`TABLES` where `TABLE_SCHEMA`=? and `TABLE_TYPE`=`BASE TABLE`";
+        List<String> tablenames = new ArrayList<>();
+        PreparedStatement stmt = jdbcConnProvider.getConnection().prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        stmt.setString(1, this.database);
+        ResultSet rs = stmt.executeQuery();
+        int currRowIndex = rs.getRow();
         rs.beforeFirst();
-        while (rs.next()){
+        while (rs.next()) {
             tablenames.add(rs.getString(1));
         }
         rs.absolute(currRowIndex);
@@ -121,7 +121,7 @@ public class StarRocksQueryVisitor {
             if (null == opCount) {
                 throw new RuntimeException("Faild to get data count from StarRocks. ");
             }
-            count = (Long)opCount;
+            count = (Long) opCount;
         } catch (ClassNotFoundException se) {
             throw new IllegalArgumentException("Failed to find jdbc driver." + se.getMessage(), se);
         } catch (SQLException se) {
