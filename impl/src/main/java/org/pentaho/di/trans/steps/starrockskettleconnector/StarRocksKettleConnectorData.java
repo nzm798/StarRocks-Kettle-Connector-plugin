@@ -18,6 +18,8 @@ public class StarRocksKettleConnectorData extends BaseStepData implements StepDa
     public StreamLogger errorLogger;
     public StreamLogger outputLogger;
 
+    public String tablename;
+
 
 
     public StarRocksKettleConnectorData(){
