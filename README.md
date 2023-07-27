@@ -69,9 +69,9 @@ StarRocks Kettle Connector实现了Kettle的一个插件，它用于在StarRocks
 // The default is CSV. 
 'format'='CSV'
 // Starting from version 2.4, partial column updates in the primary key model are supported. You can specify the columns to be updated through the following two attributes, 
-// and you need to explicitly add the '__op' column at the end of 'partial-update-columns'.
+// and you need to explicitly add the '__op' column at the end of 'partial-update-columns','k1,k2,k3'.
 'partial-update'='true'
-'partial-update-columns'='k1,k2,k3,__op'
+'partial-update-columns'='k1,k2,k3'
 // StarRocks supports two types of data delivery semantics, "at-least-once" and "exactly-once".
 // "Exactly-once" is implemented through the Stream Load transaction interface using transactions and checkpoints.
 // "At-least-once" achieves data accuracy through a retry mechanism, 

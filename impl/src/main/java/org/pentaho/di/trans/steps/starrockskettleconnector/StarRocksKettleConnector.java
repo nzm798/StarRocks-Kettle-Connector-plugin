@@ -3,11 +3,16 @@ package org.pentaho.di.trans.steps.starrockskettleconnector;
 import com.starrocks.data.load.stream.StreamLoadDataFormat;
 import com.starrocks.data.load.stream.properties.StreamLoadProperties;
 import com.starrocks.data.load.stream.properties.StreamLoadTableProperties;
+import com.starrocks.data.load.stream.v2.StreamLoadManagerV2;
+import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.*;
+import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksCsvSerializer;
+import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksISerializer;
+import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksJsonSerializer;
 
-public class StarRocksKettleConnector extends BaseDatabaseStep implements StepInterface {
+public class StarRocksKettleConnector extends BaseStep implements StepInterface {
 
     private static Class<?> PKG= StarRocksKettleConnectorMeta.class;
     private StarRocksKettleConnectorMeta meta;
@@ -28,10 +33,17 @@ public class StarRocksKettleConnector extends BaseDatabaseStep implements StepIn
 
                 setOutputDone();
 
-                closeOutput();
-
                 return false;
             }
+            if (first){
+
+            }
+        }catch (Exception e){
+            logError(BaseMessages.getString(PKG,"StarRocksKettleConnector.Log.ErrorInStep"));
+            setErrors(1);
+            stopAll();
+            setOutputDone();
+            return false;
         }
     }
 
@@ -41,9 +53,30 @@ public class StarRocksKettleConnector extends BaseDatabaseStep implements StepIn
         data=(StarRocksKettleConnectorData) sdi;
 
         if (super.init(smi,sdi)){
-            // TODO:连接StarRocks数据库获得StreamLoadManagerV2
+            try {
+                data.streamLoadManager=new StreamLoadManagerV2(getProperties(meta),true);
+                data.streamLoadManager.init();
+            }catch (Exception e){
+                logError(BaseMessages.getString(PKG,"StarRocksKettleConnector.Message.FailConnManager"),e);
+                return false;
+            }
+            data.tablename = meta.getTablename();
+            // TODO:需要根据是否更新和删除导入data中的colums。
+            return true;
         }
+        return false;
 
+    }
+
+    public StarRocksISerializer getSerializer(StarRocksKettleConnectorMeta meta){
+        StarRocksISerializer serializer;
+        if (meta.getFormat().equals("CSV")){
+            serializer=new StarRocksCsvSerializer(",");
+        }else if (meta.getFormat().equals("JSON")){
+            serializer=new StarRocksJsonSerializer(meta.getFieldTable());
+        }else {
+            logError(BaseMessages.getString(PKG,"StarRocksKettleConnector.Message.FailFormat"));
+        }
     }
 
     // Get the property values needed for Stream Load loading.
@@ -61,15 +94,19 @@ public class StarRocksKettleConnector extends BaseDatabaseStep implements StepIn
                 .table(meta.getTablename())
                 .streamLoadDataFormat(dataFormat)
                 .enableUpsertDelete(true);
-
+        // TODO:添加部分列导入功能
 
         StreamLoadProperties.Builder builder=StreamLoadProperties.builder()
                 .loadUrls(meta.getLoadurl().toArray(new String[0]))
                 .jdbcUrl(meta.getJdbcurl())
                 .defaultTableProperties(defaultTablePropertiesBuilder.build())
                 .username(meta.getUser())
-                .password(meta.getPassword());
-        // TODO:添加StreamLoad需要的值
+                .password(meta.getPassword())
+                .cacheMaxBytes(meta.getMaxbytes())
+                .connectTimeout(meta.getConnecttimeout())
+                .version(meta.getStarRocksQueryVisitor().getStarRocksVersion());
+
+        return builder.build();
 
     }
 
@@ -77,12 +114,24 @@ public class StarRocksKettleConnector extends BaseDatabaseStep implements StepIn
     public void dispose(StepMetaInterface smi,StepDataInterface sdi){
         meta=(StarRocksKettleConnectorMeta) smi;
         data=(StarRocksKettleConnectorData) sdi;
-        // TODO:释放连接资源
+
+        try {
+            if (data.streamLoadManager!=null) {
+                try {
+                    data.streamLoadManager.flush();
+                } catch (Exception e) {
+                    logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.FailFlush"), e);
+                }
+                data.streamLoadManager.close();
+                data.streamLoadManager=null;
+            }
+        }catch (Exception e){
+            setErrors(1L);
+            logError(BaseMessages.getString(PKG,"StarRocksKettleConnector.Message.UNEXPECTEDERRORCLOSING"),e);
+        }
+
+        super.dispose(smi,sdi);
     }
 
-
-    private void closeOutput() throws Exception{
-        // TODO:关闭传输
-    }
 
 }

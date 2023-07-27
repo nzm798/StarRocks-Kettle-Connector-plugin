@@ -112,7 +112,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
      * Timeout period for connecting to the load-url.
      */
     @Injection(name = "CONNECT_TIMEOUT")
-    private long connecttimeout;
+    private int connecttimeout;
 
     /**
      * Stream Load timeout period, in seconds.
@@ -131,6 +131,14 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
      */
     @Injection(name = "FIELD_STREAM", group = "FIELDS")
     private String[] fieldStream;
+    /**
+     * Whether to implement partial updates.
+     */
+    private boolean partialupdate;
+    /**
+     * Update those columns
+     */
+    private String[] partialcolumns;
 
     /**
      * @param loadurl Url of the stream load.
@@ -275,14 +283,17 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
     /**
      * @return Return timeout period for connecting to the load-url.
      */
-    public long getConnecttimeout() {
-        return connecttimeout;
+    public int getConnecttimeout() {
+        if (connecttimeout<100){
+            return 100;
+        }
+        return Math.min(connecttimeout,60000);
     }
 
     /**
      * @param connecttimeout Timeout period for connecting to the load-url.
      */
-    public void setConnecttimeout(long connecttimeout) {
+    public void setConnecttimeout(int connecttimeout) {
         this.connecttimeout = connecttimeout;
     }
 
@@ -328,6 +339,22 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         this.fieldStream = fieldStream;
     }
 
+    /**
+     *
+     * @return Return the column that needs to be updated.
+     */
+    public String[] getPartialcolumns(){
+        return this.partialcolumns;
+    }
+
+    /**
+     *
+     * @param partialcolumns The column that needs to be updated.
+     */
+    public void setPartialcolumns(String[] partialcolumns){
+        this.partialcolumns=partialcolumns;
+    }
+
     public void setDefault() {
         fieldTable = null;
         loadurl = null;
@@ -340,8 +367,10 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         format = "CSV";
         maxbytes = 90L * MEGA_BYTES_SCALE;
         maxrows = 500000L;
-        connecttimeout = 1000L;
+        connecttimeout = 1000;
         timeout = 600L;
+        partialupdate=false;
+        partialcolumns=null;
     }
 
     public void allocate(int nrvalues) {
@@ -375,9 +404,12 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             format = XMLHandler.getTagValue(stepnode, "format");
             maxbytes = Long.valueOf(XMLHandler.getTagValue(stepnode, "maxbytes"));
             maxrows = Long.valueOf(XMLHandler.getTagValue(stepnode, "maxrows"));
-            connecttimeout = Long.valueOf(XMLHandler.getTagValue(stepnode, "connecttimeout"));
+            connecttimeout = Integer.valueOf(XMLHandler.getTagValue(stepnode, "connecttimeout"));
             timeout = Long.valueOf(XMLHandler.getTagValue(stepnode, "timeout"));
+            String partialcolumns1=XMLHandler.getTagValue(stepnode,"partialcolumns");
+            partialcolumns=partialcolumns1.split(",");
 
+            partialupdate="Y".equalsIgnoreCase( XMLHandler.getTagValue( stepnode, "partialupdate" ) );
             // Field data mapping
             int nrvalues = XMLHandler.countNodes(stepnode, "mapping");
             allocate(nrvalues);
@@ -413,6 +445,9 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         retval.append("    ").append(XMLHandler.addTagValue("maxrows", maxrows));
         retval.append("    ").append(XMLHandler.addTagValue("connecttimeout", connecttimeout));
         retval.append("    ").append(XMLHandler.addTagValue("timeout", timeout));
+        retval.append("    ").append(XMLHandler.addTagValue("partialupdate", partialupdate));
+        String partialcolumns1=String.join(",",partialcolumns);
+        retval.append("    ").append(XMLHandler.addTagValue("partialcolumns", partialcolumns1));
 
         for (int i = 0; i < fieldTable.length; i++) {
             retval.append("        ").append(XMLHandler.addTagValue("stream_name", fieldTable[i]));
@@ -435,8 +470,11 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             format = rep.getStepAttributeString(id_step, "format");
             maxbytes = Long.valueOf(rep.getStepAttributeString(id_step, "maxbytes"));
             maxrows = Long.valueOf(rep.getStepAttributeString(id_step, "maxrows"));
-            connecttimeout = Long.valueOf(rep.getStepAttributeString(id_step, "connecttimeout"));
+            connecttimeout = Integer.valueOf(rep.getStepAttributeString(id_step, "connecttimeout"));
             timeout = Long.valueOf(rep.getStepAttributeString(id_step, "timeout"));
+            partialupdate=rep.getStepAttributeBoolean(id_step,"partialupdate");
+            String partialcolumns1= rep.getStepAttributeString(id_step, "partialcolumns");
+            partialcolumns=partialcolumns1.split(",");
 
             int nrvalues = rep.countNrStepAttributes(id_step, "stream_name");
 
@@ -469,6 +507,9 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             rep.saveStepAttribute(id_transformation, id_step, "maxrows", maxrows);
             rep.saveStepAttribute(id_transformation, id_step, "connecttimeout", connecttimeout);
             rep.saveStepAttribute(id_transformation, id_step, "timeout", timeout);
+            rep.saveStepAttribute(id_transformation,id_step,"partialupdate",partialupdate);
+            String partialcolumns1=String.join(",",partialcolumns);
+            rep.saveStepAttribute(id_transformation,id_step,"partialcolumns",partialcolumns1);
 
             for (int i = 0; i < fieldTable.length; i++) {
                 rep.saveStepAttribute(id_transformation, id_step, i, "stream_name", fieldTable[i]);
