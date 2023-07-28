@@ -30,7 +30,6 @@ import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksQu
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
-import java.lang.String;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -143,6 +142,10 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
      * Whether to update and delete data.
      */
     private boolean enableupsertdelete;
+    /**
+     * Whether to implement update insert or delete when the enableupsertdelete function is enabled.
+     */
+    private String upsertordelete;
 
     /**
      * @param loadurl Url of the stream load.
@@ -388,6 +391,20 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         this.enableupsertdelete = enableupsertdelete;
     }
 
+    /**
+     * @return Return the option of the StarRocks
+     */
+    public String getUpsertOrDelete() {
+        return upsertordelete;
+    }
+
+    /**
+     * @param upsertOrDelete The option of the StarRocks,UPSERT or DELETE.
+     */
+    public void setUpsertOrDelete(String upsertOrDelete) {
+        this.upsertordelete = upsertOrDelete;
+    }
+
     public void setDefault() {
         fieldTable = null;
         loadurl = null;
@@ -404,7 +421,8 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         timeout = 600;
         partialupdate = false;
         partialcolumns = null;
-        enableupsertdelete = true;
+        enableupsertdelete = false;
+        upsertordelete = "UPSERT";
     }
 
     public void allocate(int nrvalues) {
@@ -445,6 +463,8 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
 
             partialupdate = "Y".equalsIgnoreCase(XMLHandler.getTagValue(stepnode, "partialupdate"));
             enableupsertdelete = "Y".equalsIgnoreCase(XMLHandler.getTagValue(stepnode, "enableupsertdelete"));
+
+            upsertordelete = XMLHandler.getTagValue(stepnode, "upsertordelete");
             // Field data mapping
             int nrvalues = XMLHandler.countNodes(stepnode, "mapping");
             allocate(nrvalues);
@@ -484,6 +504,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         String partialcolumns1 = String.join(",", partialcolumns);
         retval.append("    ").append(XMLHandler.addTagValue("partialcolumns", partialcolumns1));
         retval.append("    ").append(XMLHandler.addTagValue("enableupsertdelete", enableupsertdelete));
+        retval.append("    ").append(XMLHandler.addTagValue("enableupsertdelete", upsertordelete));
 
         for (int i = 0; i < fieldTable.length; i++) {
             retval.append("        ").append(XMLHandler.addTagValue("stream_name", fieldTable[i]));
@@ -512,6 +533,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             String partialcolumns1 = rep.getStepAttributeString(id_step, "partialcolumns");
             partialcolumns = partialcolumns1.split(",");
             enableupsertdelete = rep.getStepAttributeBoolean(id_step, "enableupsertdelete");
+            upsertordelete = rep.getStepAttributeString(id_step, "upsertordelete");
 
             int nrvalues = rep.countNrStepAttributes(id_step, "stream_name");
 
@@ -548,6 +570,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             String partialcolumns1 = String.join(",", partialcolumns);
             rep.saveStepAttribute(id_transformation, id_step, "partialcolumns", partialcolumns1);
             rep.saveStepAttribute(id_transformation, id_step, "enableupsertdelete", enableupsertdelete);
+            rep.saveStepAttribute(id_transformation, id_step, "upsertordelete", upsertordelete);
 
             for (int i = 0; i < fieldTable.length; i++) {
                 rep.saveStepAttribute(id_transformation, id_step, i, "stream_name", fieldTable[i]);

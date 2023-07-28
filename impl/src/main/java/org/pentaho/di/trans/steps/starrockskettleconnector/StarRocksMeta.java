@@ -30,4 +30,5 @@ public interface StarRocksMeta extends StepMetaInterface {
     String[] getPartialcolumns();
 
     boolean getEnableUpsertDelete();
+    String getUpsertOrDelete();
 }
