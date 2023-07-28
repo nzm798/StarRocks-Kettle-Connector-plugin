@@ -139,6 +139,10 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
      * Update those columns
      */
     private String[] partialcolumns;
+    /**
+     * Whether to update and delete data.
+     */
+    private boolean enableupsertdelete;
 
     /**
      * @param loadurl Url of the stream load.
@@ -284,10 +288,10 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
      * @return Return timeout period for connecting to the load-url.
      */
     public int getConnecttimeout() {
-        if (connecttimeout<100){
+        if (connecttimeout < 100) {
             return 100;
         }
-        return Math.min(connecttimeout,60000);
+        return Math.min(connecttimeout, 60000);
     }
 
     /**
@@ -340,19 +344,45 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
     }
 
     /**
-     *
      * @return Return the column that needs to be updated.
      */
-    public String[] getPartialcolumns(){
+    public String[] getPartialcolumns() {
         return this.partialcolumns;
     }
 
     /**
-     *
      * @param partialcolumns The column that needs to be updated.
      */
-    public void setPartialcolumns(String[] partialcolumns){
-        this.partialcolumns=partialcolumns;
+    public void setPartialcolumns(String[] partialcolumns) {
+        this.partialcolumns = partialcolumns;
+    }
+
+    /**
+     * @return Returns whether a partial update was made.
+     */
+    public boolean getPartialUpdate() {
+        return this.partialupdate;
+    }
+
+    /**
+     * @param partialupdate Whether a partial update was made.
+     */
+    public void setPartialupdate(boolean partialupdate) {
+        this.partialupdate = partialupdate;
+    }
+
+    /**
+     * @return Return whether to update and delete data.
+     */
+    public boolean getEnableUpsertDelete() {
+        return this.enableupsertdelete;
+    }
+
+    /**
+     * @param enableupsertdelete Whether to update and delete data.
+     */
+    public void setEnableupsertdelete(boolean enableupsertdelete) {
+        this.enableupsertdelete = enableupsertdelete;
     }
 
     public void setDefault() {
@@ -369,8 +399,9 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         maxrows = 500000L;
         connecttimeout = 1000;
         timeout = 600L;
-        partialupdate=false;
-        partialcolumns=null;
+        partialupdate = false;
+        partialcolumns = null;
+        enableupsertdelete = true;
     }
 
     public void allocate(int nrvalues) {
@@ -406,10 +437,11 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             maxrows = Long.valueOf(XMLHandler.getTagValue(stepnode, "maxrows"));
             connecttimeout = Integer.valueOf(XMLHandler.getTagValue(stepnode, "connecttimeout"));
             timeout = Long.valueOf(XMLHandler.getTagValue(stepnode, "timeout"));
-            String partialcolumns1=XMLHandler.getTagValue(stepnode,"partialcolumns");
-            partialcolumns=partialcolumns1.split(",");
+            String partialcolumns1 = XMLHandler.getTagValue(stepnode, "partialcolumns");
+            partialcolumns = partialcolumns1.split(",");
 
-            partialupdate="Y".equalsIgnoreCase( XMLHandler.getTagValue( stepnode, "partialupdate" ) );
+            partialupdate = "Y".equalsIgnoreCase(XMLHandler.getTagValue(stepnode, "partialupdate"));
+            enableupsertdelete = "Y".equalsIgnoreCase(XMLHandler.getTagValue(stepnode, "enableupsertdelete"));
             // Field data mapping
             int nrvalues = XMLHandler.countNodes(stepnode, "mapping");
             allocate(nrvalues);
@@ -446,8 +478,9 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         retval.append("    ").append(XMLHandler.addTagValue("connecttimeout", connecttimeout));
         retval.append("    ").append(XMLHandler.addTagValue("timeout", timeout));
         retval.append("    ").append(XMLHandler.addTagValue("partialupdate", partialupdate));
-        String partialcolumns1=String.join(",",partialcolumns);
+        String partialcolumns1 = String.join(",", partialcolumns);
         retval.append("    ").append(XMLHandler.addTagValue("partialcolumns", partialcolumns1));
+        retval.append("    ").append(XMLHandler.addTagValue("enableupsertdelete", enableupsertdelete));
 
         for (int i = 0; i < fieldTable.length; i++) {
             retval.append("        ").append(XMLHandler.addTagValue("stream_name", fieldTable[i]));
@@ -472,9 +505,10 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             maxrows = Long.valueOf(rep.getStepAttributeString(id_step, "maxrows"));
             connecttimeout = Integer.valueOf(rep.getStepAttributeString(id_step, "connecttimeout"));
             timeout = Long.valueOf(rep.getStepAttributeString(id_step, "timeout"));
-            partialupdate=rep.getStepAttributeBoolean(id_step,"partialupdate");
-            String partialcolumns1= rep.getStepAttributeString(id_step, "partialcolumns");
-            partialcolumns=partialcolumns1.split(",");
+            partialupdate = rep.getStepAttributeBoolean(id_step, "partialupdate");
+            String partialcolumns1 = rep.getStepAttributeString(id_step, "partialcolumns");
+            partialcolumns = partialcolumns1.split(",");
+            enableupsertdelete = rep.getStepAttributeBoolean(id_step, "enableupsertdelete");
 
             int nrvalues = rep.countNrStepAttributes(id_step, "stream_name");
 
@@ -507,9 +541,10 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             rep.saveStepAttribute(id_transformation, id_step, "maxrows", maxrows);
             rep.saveStepAttribute(id_transformation, id_step, "connecttimeout", connecttimeout);
             rep.saveStepAttribute(id_transformation, id_step, "timeout", timeout);
-            rep.saveStepAttribute(id_transformation,id_step,"partialupdate",partialupdate);
-            String partialcolumns1=String.join(",",partialcolumns);
-            rep.saveStepAttribute(id_transformation,id_step,"partialcolumns",partialcolumns1);
+            rep.saveStepAttribute(id_transformation, id_step, "partialupdate", partialupdate);
+            String partialcolumns1 = String.join(",", partialcolumns);
+            rep.saveStepAttribute(id_transformation, id_step, "partialcolumns", partialcolumns1);
+            rep.saveStepAttribute(id_transformation, id_step, "enableupsertdelete", enableupsertdelete);
 
             for (int i = 0; i < fieldTable.length; i++) {
                 rep.saveStepAttribute(id_transformation, id_step, i, "stream_name", fieldTable[i]);
@@ -629,6 +664,32 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
                     cr = new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR, error_message, stepMeta);
                     remarks.add(cr);
                 }
+
+                // Look up partial columns in the field name.
+                if (partialupdate) {
+                    error_found = false;
+                    first = true;
+                    error_message = "";
+                    for (String field : partialcolumns) {
+                        if (!containsString(fieldTable, field)) {
+                            if (first) {
+                                first = false;
+                                error_message += BaseMessages.getString(PKG, "StarRocksKettleConnectorMeta.CheckResult.MissingPartialColumns") + Const.CR;
+                            }
+                            error_found=true;
+                            error_message += "\t\t" + field + Const.CR;
+                        }
+                    }
+                    if (error_found){
+                        cr=new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR,error_message,stepMeta);
+                    }else {
+                        cr=new CheckResult(CheckResultInterface.TYPE_RESULT_OK,BaseMessages.getString(PKG,"StarRocksKettleConnectorMeta.CheckResult.AllColumnsFoundInFieldTable"),stepMeta);
+                    }
+                    remarks.add(cr);
+                }else {
+                    cr=new CheckResult(CheckResultInterface.TYPE_RESULT_OK,BaseMessages.getString(PKG,"StarRocksKettleConnectorMeta.CheckResult.NoNeedPartialUpdate"),stepMeta);
+                    remarks.add(cr);
+                }
             } catch (Exception e) {
                 error_message = BaseMessages.getString(PKG, "StarRocksKettleConnectorMeta.CheckResult.DatabaseErrorOccurred") + e.getMessage();
                 cr = new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR, error_message, stepMeta);
@@ -663,5 +724,18 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
 
     public StepDataInterface getStepData() {
         return new StarRocksKettleConnectorData();
+    }
+
+    public boolean containsString(String[] array, String a) {
+        for (String element : array) {
+            if (element.equals(a)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public boolean isOpAutoProjectionInJson(){
+        String version=getStarRocksQueryVisitor().getStarRocksVersion();
+        return version == null || version.length() > 0 && !version.trim().startsWith("1.");
     }
 }

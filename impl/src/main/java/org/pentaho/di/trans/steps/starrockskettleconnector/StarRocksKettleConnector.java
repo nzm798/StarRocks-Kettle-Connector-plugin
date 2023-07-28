@@ -12,6 +12,9 @@ import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksCs
 import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksISerializer;
 import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksJsonSerializer;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 public class StarRocksKettleConnector extends BaseStep implements StepInterface {
 
     private static Class<?> PKG= StarRocksKettleConnectorMeta.class;
@@ -53,8 +56,16 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
         data=(StarRocksKettleConnectorData) sdi;
 
         if (super.init(smi,sdi)){
+            // Add columns properties to all to prevent changes in the order of the fields.
+            if (meta.getPartialUpdate()){
+                data.columns=new String[meta.getPartialcolumns().length];
+                System.arraycopy(meta.getPartialcolumns(),0,data.columns,0,meta.getPartialcolumns().length);
+            }else {
+                data.columns=new String[meta.getFieldTable().length];
+                System.arraycopy(meta.getFieldTable(),0,data.columns,0,meta.getFieldTable().length);
+            }
             try {
-                data.streamLoadManager=new StreamLoadManagerV2(getProperties(meta),true);
+                data.streamLoadManager=new StreamLoadManagerV2(getProperties(meta,data),true);
                 data.streamLoadManager.init();
             }catch (Exception e){
                 logError(BaseMessages.getString(PKG,"StarRocksKettleConnector.Message.FailConnManager"),e);
@@ -76,11 +87,13 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
             serializer=new StarRocksJsonSerializer(meta.getFieldTable());
         }else {
             logError(BaseMessages.getString(PKG,"StarRocksKettleConnector.Message.FailFormat"));
+            return null;
         }
+        return serializer;
     }
 
     // Get the property values needed for Stream Load loading.
-    public StreamLoadProperties getProperties(StarRocksKettleConnectorMeta meta){
+    public StreamLoadProperties getProperties(StarRocksKettleConnectorMeta meta,StarRocksKettleConnectorData data){
         StreamLoadDataFormat dataFormat;
         if (meta.getFormat().equals("CSV")){
             dataFormat=StreamLoadDataFormat.CSV;
@@ -93,8 +106,36 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 .database(meta.getDatabasename())
                 .table(meta.getTablename())
                 .streamLoadDataFormat(dataFormat)
-                .enableUpsertDelete(true);
-        // TODO:添加部分列导入功能
+                .enableUpsertDelete(meta.getEnableUpsertDelete());
+        if (meta.getPartialUpdate()){
+            defaultTablePropertiesBuilder.addProperty("partial_update","true");
+        }
+        // Add the '__op' field
+        if (data.columns!=null){
+            // don't need to add "columns" header in following cases
+            // 1. use csv format but the flink and starrocks schemas are aligned
+            // 2. use json format, except that it's loading o a primary key table for StarRocks 1.x
+            boolean noNeedAddColumnsHeader;
+            if (dataFormat instanceof StreamLoadDataFormat.CSVFormat){
+                noNeedAddColumnsHeader=false;
+            }else {
+                noNeedAddColumnsHeader=!meta.getEnableUpsertDelete() || meta.isOpAutoProjectionInJson();
+            }
+            if (!noNeedAddColumnsHeader){
+                String[] headerColumns;
+                if (meta.getEnableUpsertDelete()){
+                    headerColumns=new String[data.columns.length+1];
+                    System.arraycopy(data.columns,0,headerColumns,0,data.columns.length);
+                    headerColumns[data.columns.length]="__op";
+                }else {
+                    headerColumns= data.columns;
+                }
+                String cols = Arrays.stream(headerColumns)
+                        .map(f -> String.format("`%s`", f.trim().replace("`", "")))
+                        .collect(Collectors.joining(","));
+                defaultTablePropertiesBuilder.columns(cols);
+            }
+        }
 
         StreamLoadProperties.Builder builder=StreamLoadProperties.builder()
                 .loadUrls(meta.getLoadurl().toArray(new String[0]))

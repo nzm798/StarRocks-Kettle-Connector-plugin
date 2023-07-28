@@ -26,4 +26,8 @@ public interface StarRocksMeta extends StepMetaInterface {
     int getConnecttimeout();
 
     long getTimeout();
+    boolean getPartialUpdate();
+    String[] getPartialcolumns();
+
+    boolean getEnableUpsertDelete();
 }
