@@ -18,7 +18,7 @@ public class StarRocksKettleConnectorData extends BaseStepData implements StepDa
     public StarRocksISerializer serializer;
     // In StarRocks,If you want to implement changes to the data and partial imports, you need to add '__op'.
     public String[] columns;
-
+    //The index corresponding to the data type of the row element.
     public int[] keynrs; // nr of keylookup -value in row...
 
 

@@ -39,7 +39,13 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 return false;
             }
             if (first){
+                first=false;
 
+                // Cache field indexes.
+                data.keynrs=new int[meta.getFieldStream().length];
+                for (int i=0;i<data.keynrs.length;i++){
+                    data.keynrs[i]=getInputRowMeta().indexOfValue(meta.getFieldStream()[i]);
+                }
             }
         }catch (Exception e){
             logError(BaseMessages.getString(PKG,"StarRocksKettleConnector.Log.ErrorInStep"));
@@ -72,7 +78,6 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 return false;
             }
             data.tablename = meta.getTablename();
-            // TODO:需要根据是否更新和删除导入data中的colums。
             return true;
         }
         return false;
@@ -145,7 +150,8 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 .password(meta.getPassword())
                 .cacheMaxBytes(meta.getMaxbytes())
                 .connectTimeout(meta.getConnecttimeout())
-                .version(meta.getStarRocksQueryVisitor().getStarRocksVersion());
+                .version(meta.getStarRocksQueryVisitor().getStarRocksVersion())
+                .addHeader("timeout",String.valueOf(meta.getTimeout()));
 
         return builder.build();
 

@@ -113,18 +113,18 @@ StarRocks Kettle Connector实现了Kettle的一个插件，它用于在StarRocks
 
 ### StarRocks数据类型以及与Kettle对应
 
-| Kettle           | StarRocks                                                    |
-| ---------------- | ------------------------------------------------------------ |
-| String           | CHAR、STRING、VARCHAR                                        |
-| Date             | DATE、DATETIME                                               |
-| Boolean          | BOOLEAN                                                      |
-| Integer          | TINYINT 、SMALLINT 、INT 、BIGINT                            |
-| Number           | FLOAT 、DOUBLE                                               |
+| Kettle           | StarRocks                                                   |
+| ---------------- | ----------------------------------------------------------- |
+| String           | CHAR、STRING、VARCHAR                                       |
+| Date             | DATE                                               |
+| Boolean          | BOOLEAN                                                     |
+| Integer          | TINYINT 、SMALLINT 、INT 、BIGINT                           |
+| Number           | FLOAT 、DOUBLE                                              |
 | BigNumber        | LARGEINT、[DECIMAL](https://docs.starrocks.io/zh-cn/latest/sql-reference/sql-statements/data-types/DECIMAL)、DOUBLE |
-| Binary           | BINARY                                                       |
-| Timestamp        |                                                              |
-| Internet Address | STRING                                                       |
-| serializable     |                                                              |
+| Binary           | BINARY                                                      |
+| Timestamp        | DATETIME                                                            |
+| Internet Address | STRING                                                      |
+| serializable     |                                                             |
 
 **serializable、Timestamp：StarRocks中无与之相对应的数据类型**
 

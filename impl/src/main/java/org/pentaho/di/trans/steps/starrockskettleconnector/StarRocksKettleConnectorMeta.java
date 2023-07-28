@@ -118,7 +118,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
      * Stream Load timeout period, in seconds.
      */
     @Injection(name = "TIMEOUT")
-    private long timeout;
+    private int timeout;
 
     /**
      * Field name of the target table
@@ -304,14 +304,17 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
     /**
      * @return Return Stream Load timeout period.
      */
-    public long getTimeout() {
-        return timeout;
+    public int getTimeout() {
+        if (timeout < 1) {
+            return 600;
+        }
+        return Math.min(timeout, 259200);
     }
 
     /**
      * @param timeout Stream Load timeout period.
      */
-    public void setTimeout(long timeout) {
+    public void setTimeout(int timeout) {
         this.timeout = timeout;
     }
 
@@ -398,7 +401,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         maxbytes = 90L * MEGA_BYTES_SCALE;
         maxrows = 500000L;
         connecttimeout = 1000;
-        timeout = 600L;
+        timeout = 600;
         partialupdate = false;
         partialcolumns = null;
         enableupsertdelete = true;
@@ -436,7 +439,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             maxbytes = Long.valueOf(XMLHandler.getTagValue(stepnode, "maxbytes"));
             maxrows = Long.valueOf(XMLHandler.getTagValue(stepnode, "maxrows"));
             connecttimeout = Integer.valueOf(XMLHandler.getTagValue(stepnode, "connecttimeout"));
-            timeout = Long.valueOf(XMLHandler.getTagValue(stepnode, "timeout"));
+            timeout = Integer.valueOf(XMLHandler.getTagValue(stepnode, "timeout"));
             String partialcolumns1 = XMLHandler.getTagValue(stepnode, "partialcolumns");
             partialcolumns = partialcolumns1.split(",");
 
@@ -503,8 +506,8 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             format = rep.getStepAttributeString(id_step, "format");
             maxbytes = Long.valueOf(rep.getStepAttributeString(id_step, "maxbytes"));
             maxrows = Long.valueOf(rep.getStepAttributeString(id_step, "maxrows"));
-            connecttimeout = Integer.valueOf(rep.getStepAttributeString(id_step, "connecttimeout"));
-            timeout = Long.valueOf(rep.getStepAttributeString(id_step, "timeout"));
+            connecttimeout = (int) rep.getStepAttributeInteger(id_step, "connecttimeout");
+            timeout = (int) rep.getStepAttributeInteger(id_step, "timeout");
             partialupdate = rep.getStepAttributeBoolean(id_step, "partialupdate");
             String partialcolumns1 = rep.getStepAttributeString(id_step, "partialcolumns");
             partialcolumns = partialcolumns1.split(",");
@@ -676,18 +679,18 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
                                 first = false;
                                 error_message += BaseMessages.getString(PKG, "StarRocksKettleConnectorMeta.CheckResult.MissingPartialColumns") + Const.CR;
                             }
-                            error_found=true;
+                            error_found = true;
                             error_message += "\t\t" + field + Const.CR;
                         }
                     }
-                    if (error_found){
-                        cr=new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR,error_message,stepMeta);
-                    }else {
-                        cr=new CheckResult(CheckResultInterface.TYPE_RESULT_OK,BaseMessages.getString(PKG,"StarRocksKettleConnectorMeta.CheckResult.AllColumnsFoundInFieldTable"),stepMeta);
+                    if (error_found) {
+                        cr = new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR, error_message, stepMeta);
+                    } else {
+                        cr = new CheckResult(CheckResultInterface.TYPE_RESULT_OK, BaseMessages.getString(PKG, "StarRocksKettleConnectorMeta.CheckResult.AllColumnsFoundInFieldTable"), stepMeta);
                     }
                     remarks.add(cr);
-                }else {
-                    cr=new CheckResult(CheckResultInterface.TYPE_RESULT_OK,BaseMessages.getString(PKG,"StarRocksKettleConnectorMeta.CheckResult.NoNeedPartialUpdate"),stepMeta);
+                } else {
+                    cr = new CheckResult(CheckResultInterface.TYPE_RESULT_OK, BaseMessages.getString(PKG, "StarRocksKettleConnectorMeta.CheckResult.NoNeedPartialUpdate"), stepMeta);
                     remarks.add(cr);
                 }
             } catch (Exception e) {
@@ -734,8 +737,9 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         }
         return false;
     }
-    public boolean isOpAutoProjectionInJson(){
-        String version=getStarRocksQueryVisitor().getStarRocksVersion();
+
+    public boolean isOpAutoProjectionInJson() {
+        String version = getStarRocksQueryVisitor().getStarRocksVersion();
         return version == null || version.length() > 0 && !version.trim().startsWith("1.");
     }
 }
