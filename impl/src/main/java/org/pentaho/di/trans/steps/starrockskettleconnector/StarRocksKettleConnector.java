@@ -57,7 +57,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
 
             String serializedValue = data.serializer.serialize(transform(r, meta.getEnableUpsertDelete()));
             data.streamLoadManager.write(null, data.databasename, data.tablename, serializedValue);
-
+            // TODO:实现写入刷新
             putRow(getInputRowMeta(), r);
             incrementLinesOutput();
             return true;
@@ -126,7 +126,6 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                     } else {
                         return integerValue;
                     }
-                    return ((Number) r).longValue();
                 case ValueMetaInterface.TYPE_NUMBER:
                     Double doubleValue = (Double) r;
                     if (doubleValue >= -Float.MAX_VALUE && doubleValue <= Float.MAX_VALUE && type == StarRocksDataType.FLOAT) {
@@ -161,6 +160,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
             }
         } catch (Exception e) {
             logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.FailConvertType") + e.getMessage());
+            return null;
         }
     }
 
