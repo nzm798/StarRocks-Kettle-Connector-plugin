@@ -1,5 +1,6 @@
 package org.pentaho.di.trans.steps.starrockskettleconnector;
 
+import com.alibaba.fastjson.JSON;
 import com.starrocks.data.load.stream.StreamLoadDataFormat;
 import com.starrocks.data.load.stream.properties.StreamLoadProperties;
 import com.starrocks.data.load.stream.properties.StreamLoadTableProperties;
@@ -11,13 +12,16 @@ import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.*;
 import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksCsvSerializer;
+import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksDataType;
 import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksISerializer;
 import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksJsonSerializer;
 
+import java.math.BigDecimal;
 import java.net.InetAddress;
-import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class StarRocksKettleConnector extends BaseStep implements StepInterface {
@@ -60,16 +64,18 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
             return false;
         }
     }
+
     // Data type conversion.
     public Object[] transform(Object[] r, boolean supportUpsertDelete) {
         Object[] values = new Object[data.keynrs.length + (supportUpsertDelete ? 1 : 0)];
-        for (int i=0;i<data.keynrs.length;i++){
-            ValueMetaInterface sourceMeta=getInputRowMeta().getValueMeta(data.keynrs[i]);
+        for (int i = 0; i < data.keynrs.length; i++) {
+            ValueMetaInterface sourceMeta = getInputRowMeta().getValueMeta(data.keynrs[i]);
+            StarRocksDataType dataType = data.fieldtype.get(meta.getFieldTable()[i]);
             // TODO:实现数据类型的转换
-            values[i]=typeConvertion(sourceMeta,r[i]);
+            values[i] = typeConvertion(sourceMeta, dataType, r[i]);
         }
-        if (supportUpsertDelete){
-            values[data.keynrs.length]= StarRocksOP.parse(meta.getUpsertOrDelete()).ordinal();
+        if (supportUpsertDelete) {
+            values[data.keynrs.length] = StarRocksOP.parse(meta.getUpsertOrDelete()).ordinal();
         }
         return values;
     }
@@ -77,43 +83,72 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
     /**
      * 在这个版本的函数中，我们增加了对 TYPE_INET 的处理，将其转换为了字符串格式。对于 TYPE_BIGNUMBER，我们将其转换为了 DECIMAL，
      * 使用了 BigDecimal 的字符串表示形式，这是因为 DECIMAL 类型在 StarRocks 中是以字符串的形式进行表示的。对于其他的类型，我们保持了原来的处理方式。
+     *
      * @param sourceMeta
      * @param r
      * @return
      */
-    public Object typeConvertion(ValueMetaInterface sourceMeta,Object r){
+    public Object typeConvertion(ValueMetaInterface sourceMeta, StarRocksDataType type, Object r) {
         // TODO:实现数据的转换
         if (r == null) {
             return null;
         }
-
         try {
             switch (sourceMeta.getType()) {
+                case ValueMetaInterface.TYPE_STRING:
+                    // Treat as JSON if it starts with '{' or '['
+                    String sValue = r.toString();
+                    if (type == null) {
+                        return sValue;
+                    }
+                    if ((type == StarRocksDataType.JSON ||
+                            type == StarRocksDataType.UNKNOWN)
+                            && (sValue.charAt(0) == '{' || sValue.charAt(0) == '[')) {
+                        return JSON.parse(sValue);
+                    } else {
+                        return sValue;
+                    }
                 case ValueMetaInterface.TYPE_BOOLEAN:
                     return (Boolean) r ? 1L : 0L;
                 case ValueMetaInterface.TYPE_INTEGER:
-                    // StarRocks supports different types of integers, but we can't distinguish between them, so we always convert to BIGINT for safety.
+                    Long integerValue=(Long) r;
+                    if (integerValue >= Byte.MIN_VALUE && integerValue <= Byte.MAX_VALUE && type==StarRocksDataType.TINYINT) {
+                        return integerValue.byteValue();
+                    } else if (integerValue >= Short.MIN_VALUE && integerValue <= Short.MAX_VALUE && type==StarRocksDataType.SMALLINT) {
+                        return integerValue.shortValue();
+                    } else if (integerValue >= Integer.MIN_VALUE && integerValue <= Integer.MAX_VALUE && type==StarRocksDataType.INT) {
+                        return integerValue.intValue();
+                    } else {
+                        return integerValue;
+                    }
                     return ((Number) r).longValue();
                 case ValueMetaInterface.TYPE_NUMBER:
-                    // Convert Kettle Number to StarRocks DOUBLE
-                    return ((Number) r).doubleValue();
+                    Double doubleValue = (Double) r;
+                    if (doubleValue >= -Float.MAX_VALUE && doubleValue <= Float.MAX_VALUE && type==StarRocksDataType.FLOAT) {
+                        return doubleValue.floatValue();
+                    } else {
+                        return doubleValue;
+                    }
                 case ValueMetaInterface.TYPE_BIGNUMBER:
-                    // Convert Kettle BigNumber to StarRocks DECIMAL
                     return r.toString(); // BigDecimal string representation is compatible with DECIMAL
-                case ValueMetaInterface.TYPE_STRING:
-                    return r.toString();
                 case ValueMetaInterface.TYPE_DATE:
                     // StarRocks DATE type format: 'yyyy-MM-dd'
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                    return dateFormat.format((Date) r);
+                    SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+                    return dateFormatter.format((Date) r);
                 case ValueMetaInterface.TYPE_TIMESTAMP:
                     // StarRocks DATETIME type format: 'yyyy-MM-dd HH:mm:ss'
                     SimpleDateFormat datetimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                     return datetimeFormat.format((Date) r);
                 case ValueMetaInterface.TYPE_BINARY:
-                    return new String((byte[]) r, StandardCharsets.UTF_8);
+                    final byte[] bts = (byte[]) r;
+                    long value = 0;
+                    for (int i = 0; i < bts.length; i++) {
+                        value += (bts[bts.length - i - 1] & 0xffL) << (8 * i);
+                    }
+                    return value;
+
                 case ValueMetaInterface.TYPE_INET:
-                    InetAddress address = (InetAddress) r;
+                    InetAddress address=(InetAddress) r;
                     return address.getHostAddress();
                 default:
                     throw new KettleException("Unsupported type conversion: " + sourceMeta.getType());
@@ -121,7 +156,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
         } catch (Exception e) {
             throw new KettleException("Failed to convert type: ", e);
         }
-}
+    }
 
     @Override
     public boolean init(StepMetaInterface smi, StepDataInterface sdi) {
@@ -142,6 +177,12 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 data.streamLoadManager.init();
             } catch (Exception e) {
                 logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.FailConnManager"), e);
+                return false;
+            }
+            try {
+                data.fieldtype = meta.getStarRocksQueryVisitor().getFieldMapping();
+            } catch (Exception e) {
+                logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.MissingStarRocksFieldType"));
                 return false;
             }
             data.tablename = meta.getTablename();
