@@ -41,7 +41,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
             if (r == null) { // no more input to be expected...
 
                 setOutputDone();
-
+                closeOutput();
                 return false;
             }
             if (first) {
@@ -69,6 +69,11 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
             setOutputDone();
             return false;
         }
+    }
+
+    private void closeOutput() throws Exception{
+        data.streamLoadManager.flush();
+        // TODO:关闭刷新数据。
     }
 
     // Data type conversion.

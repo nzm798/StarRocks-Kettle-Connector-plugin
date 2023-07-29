@@ -213,14 +213,14 @@ public class StreamLoadManagerV2 implements StreamLoadManager, Serializable {
                         }
                     }
                 }
-            }, "Flink-StarRocks-Sink-Manager");
+            }, "StarRocks-Kettle-Connector-Manager");
             manager.setDaemon(true);
             manager.start();
             manager.setUncaughtExceptionHandler((t, ee) -> {
-                LOG.error("StarRocks-Sink-Manager error", ee);
+                LOG.error("StarRocks-Kettle-Manager error", ee);
                 e = ee;
             });
-            LOG.info("Flink-StarRocks-Sink-Manager start, enableAutoCommit: {}, streamLoader: {}, {}",
+            LOG.info("StarRocks-Kettle-Connector-Manager start, enableAutoCommit: {}, streamLoader: {}, {}",
                     enableAutoCommit, streamLoader.getClass().getName(), EnvUtils.getGitInformation());
 
             streamLoader.start(properties, this);
