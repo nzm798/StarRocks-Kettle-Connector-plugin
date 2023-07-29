@@ -126,6 +126,10 @@ StarRocks Kettle Connector实现了Kettle的一个插件，它用于在StarRocks
 | Internet Address | STRING                                                       |
 | serializable     |                                                              |
 
+**String：最后全部转换为String。**
+
+**Integer、Number：根据Kettle中数据的大小和StarRocks数据库中的数据类型对应选择最后的数据类型**
+
 **BigNumber：最后数据都转换为String**
 
 **serializable：StarRocks中无与之相对应的数据类型**
