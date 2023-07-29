@@ -4,6 +4,7 @@ import com.starrocks.data.load.stream.StreamLoadDataFormat;
 import com.starrocks.data.load.stream.properties.StreamLoadProperties;
 import com.starrocks.data.load.stream.properties.StreamLoadTableProperties;
 import com.starrocks.data.load.stream.v2.StreamLoadManagerV2;
+import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
@@ -13,6 +14,9 @@ import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksCs
 import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksISerializer;
 import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksJsonSerializer;
 
+import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -70,9 +74,54 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
         return values;
     }
 
+    /**
+     * 在这个版本的函数中，我们增加了对 TYPE_INET 的处理，将其转换为了字符串格式。对于 TYPE_BIGNUMBER，我们将其转换为了 DECIMAL，
+     * 使用了 BigDecimal 的字符串表示形式，这是因为 DECIMAL 类型在 StarRocks 中是以字符串的形式进行表示的。对于其他的类型，我们保持了原来的处理方式。
+     * @param sourceMeta
+     * @param r
+     * @return
+     */
     public Object typeConvertion(ValueMetaInterface sourceMeta,Object r){
         // TODO:实现数据的转换
-    }
+        if (r == null) {
+            return null;
+        }
+
+        try {
+            switch (sourceMeta.getType()) {
+                case ValueMetaInterface.TYPE_BOOLEAN:
+                    return (Boolean) r ? 1L : 0L;
+                case ValueMetaInterface.TYPE_INTEGER:
+                    // StarRocks supports different types of integers, but we can't distinguish between them, so we always convert to BIGINT for safety.
+                    return ((Number) r).longValue();
+                case ValueMetaInterface.TYPE_NUMBER:
+                    // Convert Kettle Number to StarRocks DOUBLE
+                    return ((Number) r).doubleValue();
+                case ValueMetaInterface.TYPE_BIGNUMBER:
+                    // Convert Kettle BigNumber to StarRocks DECIMAL
+                    return r.toString(); // BigDecimal string representation is compatible with DECIMAL
+                case ValueMetaInterface.TYPE_STRING:
+                    return r.toString();
+                case ValueMetaInterface.TYPE_DATE:
+                    // StarRocks DATE type format: 'yyyy-MM-dd'
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                    return dateFormat.format((Date) r);
+                case ValueMetaInterface.TYPE_TIMESTAMP:
+                    // StarRocks DATETIME type format: 'yyyy-MM-dd HH:mm:ss'
+                    SimpleDateFormat datetimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    return datetimeFormat.format((Date) r);
+                case ValueMetaInterface.TYPE_BINARY:
+                    return new String((byte[]) r, StandardCharsets.UTF_8);
+                case ValueMetaInterface.TYPE_INET:
+                    InetAddress address = (InetAddress) r;
+                    return address.getHostAddress();
+                default:
+                    throw new KettleException("Unsupported type conversion: " + sourceMeta.getType());
+            }
+        } catch (Exception e) {
+            throw new KettleException("Failed to convert type: ", e);
+        }
+}
 
     @Override
     public boolean init(StepMetaInterface smi, StepDataInterface sdi) {
