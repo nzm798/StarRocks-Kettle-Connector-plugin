@@ -27,6 +27,7 @@ public class StarRocksKettleConnectorData extends BaseStepData implements StepDa
     // The field name and field type of the target table in Starrocks.
     public Map<String, StarRocksDataType> fieldtype;
     public String tablename;
+    public String databasename;
 
 
     public StarRocksKettleConnectorData() {

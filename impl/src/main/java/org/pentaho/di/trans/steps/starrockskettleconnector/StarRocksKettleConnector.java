@@ -5,7 +5,6 @@ import com.starrocks.data.load.stream.StreamLoadDataFormat;
 import com.starrocks.data.load.stream.properties.StreamLoadProperties;
 import com.starrocks.data.load.stream.properties.StreamLoadTableProperties;
 import com.starrocks.data.load.stream.v2.StreamLoadManagerV2;
-import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
@@ -16,12 +15,10 @@ import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksDa
 import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksISerializer;
 import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksJsonSerializer;
 
-import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class StarRocksKettleConnector extends BaseStep implements StepInterface {
@@ -55,7 +52,16 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 for (int i = 0; i < data.keynrs.length; i++) {
                     data.keynrs[i] = getInputRowMeta().indexOfValue(meta.getFieldStream()[i]);
                 }
+                data.serializer = getSerializer(meta);
             }
+
+            String serializedValue = data.serializer.serialize(transform(r, meta.getEnableUpsertDelete()));
+            data.streamLoadManager.write(null, data.databasename, data.tablename, serializedValue);
+
+            putRow(getInputRowMeta(), r);
+            incrementLinesOutput();
+            return true;
+
         } catch (Exception e) {
             logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Log.ErrorInStep"));
             setErrors(1);
@@ -81,15 +87,14 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
     }
 
     /**
-     * 在这个版本的函数中，我们增加了对 TYPE_INET 的处理，将其转换为了字符串格式。对于 TYPE_BIGNUMBER，我们将其转换为了 DECIMAL，
-     * 使用了 BigDecimal 的字符串表示形式，这是因为 DECIMAL 类型在 StarRocks 中是以字符串的形式进行表示的。对于其他的类型，我们保持了原来的处理方式。
+     * Data type conversion.
      *
      * @param sourceMeta
+     * @param type
      * @param r
      * @return
      */
     public Object typeConvertion(ValueMetaInterface sourceMeta, StarRocksDataType type, Object r) {
-        // TODO:实现数据的转换
         if (r == null) {
             return null;
         }
@@ -111,12 +116,12 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 case ValueMetaInterface.TYPE_BOOLEAN:
                     return (Boolean) r ? 1L : 0L;
                 case ValueMetaInterface.TYPE_INTEGER:
-                    Long integerValue=(Long) r;
-                    if (integerValue >= Byte.MIN_VALUE && integerValue <= Byte.MAX_VALUE && type==StarRocksDataType.TINYINT) {
+                    Long integerValue = (Long) r;
+                    if (integerValue >= Byte.MIN_VALUE && integerValue <= Byte.MAX_VALUE && type == StarRocksDataType.TINYINT) {
                         return integerValue.byteValue();
-                    } else if (integerValue >= Short.MIN_VALUE && integerValue <= Short.MAX_VALUE && type==StarRocksDataType.SMALLINT) {
+                    } else if (integerValue >= Short.MIN_VALUE && integerValue <= Short.MAX_VALUE && type == StarRocksDataType.SMALLINT) {
                         return integerValue.shortValue();
-                    } else if (integerValue >= Integer.MIN_VALUE && integerValue <= Integer.MAX_VALUE && type==StarRocksDataType.INT) {
+                    } else if (integerValue >= Integer.MIN_VALUE && integerValue <= Integer.MAX_VALUE && type == StarRocksDataType.INT) {
                         return integerValue.intValue();
                     } else {
                         return integerValue;
@@ -124,7 +129,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                     return ((Number) r).longValue();
                 case ValueMetaInterface.TYPE_NUMBER:
                     Double doubleValue = (Double) r;
-                    if (doubleValue >= -Float.MAX_VALUE && doubleValue <= Float.MAX_VALUE && type==StarRocksDataType.FLOAT) {
+                    if (doubleValue >= -Float.MAX_VALUE && doubleValue <= Float.MAX_VALUE && type == StarRocksDataType.FLOAT) {
                         return doubleValue.floatValue();
                     } else {
                         return doubleValue;
@@ -148,13 +153,14 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                     return value;
 
                 case ValueMetaInterface.TYPE_INET:
-                    InetAddress address=(InetAddress) r;
+                    InetAddress address = (InetAddress) r;
                     return address.getHostAddress();
                 default:
-                    throw new KettleException("Unsupported type conversion: " + sourceMeta.getType());
+                    logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.UnknowType") + ValueMetaInterface.typeCodes[sourceMeta.getType()]);
+                    return null;
             }
         } catch (Exception e) {
-            throw new KettleException("Failed to convert type: ", e);
+            logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.FailConvertType") + e.getMessage());
         }
     }
 
@@ -186,6 +192,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 return false;
             }
             data.tablename = meta.getTablename();
+            data.databasename = meta.getDatabasename();
             return true;
         }
         return false;
