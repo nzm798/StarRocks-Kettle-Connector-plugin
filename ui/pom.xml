@@ -16,7 +16,7 @@
     <dependencies>
         <dependency>
             <groupId>org.pentaho.di.plugins</groupId>
-            <artifactId>mysql-bulk-loader-impl</artifactId>
+            <artifactId>StarRocks-Kettle-Connector-impl</artifactId>
             <version>${project.version}</version>
         </dependency>
 
