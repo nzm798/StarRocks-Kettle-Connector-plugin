@@ -9,20 +9,25 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.PluginDialog;
+import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.row.RowMetaInterface;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
+import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.steps.starrockskettleconnector.StarRocksKettleConnectorMeta;
+import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksJdbcConnectionOptions;
+import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksJdbcConnectionProvider;
+import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksQueryVisitor;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Dialog class for the StarRocks Kettle Connector step.
@@ -241,6 +246,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         props.setLook(wTableName);
         wTableName.addModifyListener(lsMod);
         wTableName.addFocusListener(lsFocusLost);
+        wTableName.setText(input.getTablename());
         fdTableName = new FormData();
         fdTableName.left = new FormAttachment(middle, 0);
         fdTableName.right = new FormAttachment(100, 0);
@@ -321,7 +327,6 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         wMaxBytes = new TextVar(transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
         props.setLook(wMaxBytes);
         wMaxBytes.addModifyListener(lsMod);
-        wMaxBytes.setText(Long.toString(input.getMaxbytes()));
         fdMaxBytes = new FormData();
         fdMaxBytes.left = new FormAttachment(middle, 0);
         fdMaxBytes.top = new FormAttachment(wFormat, margin * 2);
@@ -341,7 +346,6 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         wMaxRows = new TextVar(transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
         props.setLook(wMaxRows);
         wMaxRows.addModifyListener(lsMod);
-        wMaxRows.setText(Long.toString(input.getMaxrows()));
         fdMaxRows = new FormData();
         fdMaxRows.left = new FormAttachment(middle, 0);
         fdMaxRows.top = new FormAttachment(wMaxBytes, margin * 2);
@@ -361,7 +365,6 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         wConnectTimeout = new TextVar(transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
         props.setLook(wConnectTimeout);
         wConnectTimeout.addModifyListener(lsMod);
-        wConnectTimeout.setText(Integer.toString(input.getConnecttimeout()));
         fdConnectTimeout = new FormData();
         fdConnectTimeout.left = new FormAttachment(middle, 0);
         fdConnectTimeout.top = new FormAttachment(wMaxRows, margin * 2);
@@ -381,7 +384,6 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         wTimeout = new TextVar(transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
         props.setLook(wTimeout);
         wTimeout.addModifyListener(lsMod);
-        wTimeout.setText(Integer.toString(input.getTimeout()));
         fdTimeout = new FormData();
         fdTimeout.left = new FormAttachment(middle, 0);
         fdTimeout.top = new FormAttachment(wConnectTimeout, margin * 2);
@@ -540,7 +542,72 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         fdReturn.bottom = new FormAttachment( wOK, -2 * margin );
         wReturn.setLayoutData( fdReturn );
 
+        final Runnable runnable=new Runnable() {
+            @Override
+            public void run() {
+                StepMeta stepMeta=transMeta.findStep(stepname);
+                if (stepMeta!=null){
+                    try {
+                        RowMetaInterface row=transMeta.getPrevStepFields(stepMeta);
+
+                        // Remember these fields...
+                        for ( int i = 0; i < row.size(); i++ ) {
+                            inputFields.put( row.getValueMeta( i ).getName(), i );
+                        }
+                        setComboBoxes();
+                    }catch (KettleException e){
+                        logError(BaseMessages.getString(PKG,"System.Dialog.GetFieldsFailed.Message"));
+                    }
+                }
+            }
+        };
+        new Thread(runnable).start();
+
         // TODO：增加按键的监听
+        lsOK=new Listener() {
+            @Override
+            public void handleEvent(Event event) {
+                ok();
+            }
+        };
+
+        lsCancel=new Listener() {
+            @Override
+            public void handleEvent(Event event) {
+                cancel();
+            }
+        };
+
+        lsGetLU=new Listener() {
+            @Override
+            public void handleEvent(Event event) {
+                getUpdate();
+            }
+        };
+
+        wOK.addListener(SWT.Selection,lsOK);
+        wCancel.addListener(SWT.Selection,lsCancel);
+        wGetLU.addListener(SWT.Selection,lsGetLU);
+
+        lsDef = new SelectionAdapter() {
+            public void widgetDefaultSelected( SelectionEvent e ) {
+                ok();
+            }
+        };
+
+        wLoadUrl.addSelectionListener(lsDef);
+        wJdbcUrl.addSelectionListener(lsDef);
+        wDatabaseName.addSelectionListener(lsDef);
+        wTableName.addSelectionListener(lsDef);
+        wUser.addSelectionListener(lsDef);
+        wPassword.addSelectionListener(lsDef);
+        wFormat.addSelectionListener(lsDef);
+        wMaxBytes.addSelectionListener(lsDef);
+        wMaxRows.addSelectionListener(lsDef);
+        wConnectTimeout.addSelectionListener(lsDef);
+        wTimeout.addSelectionListener(lsDef);
+        wPartialColumns.addSelectionListener(lsDef);
+        wUpsertorDelete.addSelectionListener(lsDef);
         return null;
     }
 
@@ -554,5 +621,77 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
 
     private void setTableFieldCombo() {
         // TODO:关联的组件失去焦点时被调用.
+    }
+    protected void setComboBoxes() {
+        // Something was changed in the row.
+        //
+        final Map<String, Integer> fields = new HashMap<String, Integer>();
+
+        // Add the currentMeta fields...
+        fields.putAll(inputFields );
+
+        Set<String> keySet = fields.keySet();
+        List<String> entries = new ArrayList<String>( keySet );
+
+        String[] fieldNames = entries.toArray( new String[entries.size()] );
+        Const.sortStrings( fieldNames );
+        // return fields
+        ciReturn[1].setComboValues( fieldNames );
+    }
+    private void ok(){
+        if (Utils.isEmpty(wStepname.getText())){
+            return;
+        }
+
+        // Get the information for the dialog into the input structure.
+        getInfo( input );
+
+        dispose();
+    }
+
+    private void cancel(){
+        stepname=null;
+        input.setChanged(changed);
+        dispose();
+    }
+
+    private void getInfo(StarRocksKettleConnectorMeta inf){
+        int nrfields=wReturn.nrNonEmpty();
+
+        inf.allocate(nrfields);
+
+        inf.setFormat(wFormat.getText());
+        inf.setMaxbytes(Long.valueOf(wMaxBytes.getText()));
+        inf.setMaxrows(Long.valueOf(wMaxRows.getText()));
+        inf.setConnecttimeout(Integer.valueOf(wConnectTimeout.getText()));
+        inf.setTimeout(Integer.valueOf(wTimeout.getText()));
+        inf.setPartialupdate(wPartialUpdate.getSelection());
+        inf.setPartialcolumns(wPartialColumns.getText().split(";"));
+        inf.setEnableupsertdelete(wEnableUpsertDelete.getSelection());
+        inf.setUpsertOrDelete(wUpsertorDelete.getText());
+
+        if ( log.isDebug() ) {
+            logDebug( BaseMessages.getString( PKG, "StarRocksKettleConnectorDialog.Log.FoundFields", "" + nrfields ) );
+        }
+        //CHECKSTYLE:Indentation:OFF
+        for ( int i = 0; i < nrfields; i++ ) {
+            TableItem item = wReturn.getNonEmpty( i );
+            inf.getFieldTable()[i] = item.getText( 1 );
+            inf.getFieldStream()[i] = item.getText( 2 );
+        }
+
+        inf.setLoadurl(Arrays.asList(wLoadUrl.getText().split(";")));
+        inf.setJdbcurl(wJdbcUrl.getText());
+        inf.setDatabasename(wDatabaseName.getText());
+        inf.setTablename(wTableName.getText());
+        inf.setUser(wUser.getText());
+        inf.setPassword(wPassword.getText());
+
+        stepname=wStepname.getText();
+
+    }
+
+    private void getUpdate(){
+        // TODO:
     }
 }

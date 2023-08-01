@@ -596,7 +596,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             try {
                 if (starRocksQueryVisitor == null) {
                     // Used to find field information in Starrocks.
-                    StarRocksJdbcConnectionOptions jdbcConnectionOptions = new StarRocksJdbcConnectionOptions(this.user, this.user, this.password);
+                    StarRocksJdbcConnectionOptions jdbcConnectionOptions = new StarRocksJdbcConnectionOptions(this.jdbcurl, this.user, this.password);
                     StarRocksJdbcConnectionProvider jdbcConnectionProvider = new StarRocksJdbcConnectionProvider(jdbcConnectionOptions);
                     starRocksQueryVisitor = new StarRocksQueryVisitor(jdbcConnectionProvider, this.databasename, this.tablename);
                 }
