@@ -18,16 +18,18 @@ import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.steps.starrockskettleconnector.StarRocksKettleConnectorMeta;
+import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksDataType;
 import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksJdbcConnectionOptions;
 import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksJdbcConnectionProvider;
 import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksQueryVisitor;
+import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 /**
  * Dialog class for the StarRocks Kettle Connector step.
@@ -502,61 +504,61 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         ciReturn = new ColumnInfo[UpInsCols];
         ciReturn[0] =
                 new ColumnInfo(
-                        BaseMessages.getString( PKG, "StarRocksKettleConnectorDialog.ColumnInfo.TableField" ),
-                        ColumnInfo.COLUMN_TYPE_CCOMBO, new String[] { "" }, false );
+                        BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.ColumnInfo.TableField"),
+                        ColumnInfo.COLUMN_TYPE_CCOMBO, new String[]{""}, false);
         ciReturn[1] =
                 new ColumnInfo(
-                        BaseMessages.getString( PKG, "StarRocksKettleConnectorDialog.ColumnInfo.StreamField" ),
-                        ColumnInfo.COLUMN_TYPE_CCOMBO, new String[] { "" }, false );
+                        BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.ColumnInfo.StreamField"),
+                        ColumnInfo.COLUMN_TYPE_CCOMBO, new String[]{""}, false);
 
-        tableFieldColumns.add( ciReturn[0] );
+        tableFieldColumns.add(ciReturn[0]);
         wReturn =
                 new TableView(
                         transMeta, shell, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL, ciReturn,
-                        UpInsRows, lsMod, props );
+                        UpInsRows, lsMod, props);
 
-        wGetLU = new Button( shell, SWT.PUSH );
-        wGetLU.setText( BaseMessages.getString( PKG, "StarRocksKettleConnectorDialog.GetFields.Label" ) );
+        wGetLU = new Button(shell, SWT.PUSH);
+        wGetLU.setText(BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.GetFields.Label"));
         fdGetLU = new FormData();
-        fdGetLU.top = new FormAttachment( wlReturn, margin );
-        fdGetLU.right = new FormAttachment( 100, 0 );
-        wGetLU.setLayoutData( fdGetLU );
+        fdGetLU.top = new FormAttachment(wlReturn, margin);
+        fdGetLU.right = new FormAttachment(100, 0);
+        wGetLU.setLayoutData(fdGetLU);
 
-        wDoMapping = new Button( shell, SWT.PUSH );
-        wDoMapping.setText( BaseMessages.getString( PKG, "StarRocksKettleConnectorDialog.EditMapping.Label" ) );
+        wDoMapping = new Button(shell, SWT.PUSH);
+        wDoMapping.setText(BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.EditMapping.Label"));
         fdDoMapping = new FormData();
-        fdDoMapping.top = new FormAttachment( wGetLU, margin );
-        fdDoMapping.right = new FormAttachment( 100, 0 );
-        wDoMapping.setLayoutData( fdDoMapping );
+        fdDoMapping.top = new FormAttachment(wGetLU, margin);
+        fdDoMapping.right = new FormAttachment(100, 0);
+        wDoMapping.setLayoutData(fdDoMapping);
 
-        wDoMapping.addListener( SWT.Selection, new Listener() {
-            public void handleEvent( Event arg0 ) {
+        wDoMapping.addListener(SWT.Selection, new Listener() {
+            public void handleEvent(Event arg0) {
                 generateMappings();
             }
-        } );
+        });
 
         fdReturn = new FormData();
-        fdReturn.left = new FormAttachment( 0, 0 );
-        fdReturn.top = new FormAttachment( wlReturn, margin );
-        fdReturn.right = new FormAttachment( wDoMapping, -margin );
-        fdReturn.bottom = new FormAttachment( wOK, -2 * margin );
-        wReturn.setLayoutData( fdReturn );
+        fdReturn.left = new FormAttachment(0, 0);
+        fdReturn.top = new FormAttachment(wlReturn, margin);
+        fdReturn.right = new FormAttachment(wDoMapping, -margin);
+        fdReturn.bottom = new FormAttachment(wOK, -2 * margin);
+        wReturn.setLayoutData(fdReturn);
 
-        final Runnable runnable=new Runnable() {
+        final Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                StepMeta stepMeta=transMeta.findStep(stepname);
-                if (stepMeta!=null){
+                StepMeta stepMeta = transMeta.findStep(stepname);
+                if (stepMeta != null) {
                     try {
-                        RowMetaInterface row=transMeta.getPrevStepFields(stepMeta);
+                        RowMetaInterface row = transMeta.getPrevStepFields(stepMeta);
 
                         // Remember these fields...
-                        for ( int i = 0; i < row.size(); i++ ) {
-                            inputFields.put( row.getValueMeta( i ).getName(), i );
+                        for (int i = 0; i < row.size(); i++) {
+                            inputFields.put(row.getValueMeta(i).getName(), i);
                         }
                         setComboBoxes();
-                    }catch (KettleException e){
-                        logError(BaseMessages.getString(PKG,"System.Dialog.GetFieldsFailed.Message"));
+                    } catch (KettleException e) {
+                        logError(BaseMessages.getString(PKG, "System.Dialog.GetFieldsFailed.Message"));
                     }
                 }
             }
@@ -564,33 +566,33 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         new Thread(runnable).start();
 
         // TODO：增加按键的监听
-        lsOK=new Listener() {
+        lsOK = new Listener() {
             @Override
             public void handleEvent(Event event) {
                 ok();
             }
         };
 
-        lsCancel=new Listener() {
+        lsCancel = new Listener() {
             @Override
             public void handleEvent(Event event) {
                 cancel();
             }
         };
 
-        lsGetLU=new Listener() {
+        lsGetLU = new Listener() {
             @Override
             public void handleEvent(Event event) {
                 getUpdate();
             }
         };
 
-        wOK.addListener(SWT.Selection,lsOK);
-        wCancel.addListener(SWT.Selection,lsCancel);
-        wGetLU.addListener(SWT.Selection,lsGetLU);
+        wOK.addListener(SWT.Selection, lsOK);
+        wCancel.addListener(SWT.Selection, lsCancel);
+        wGetLU.addListener(SWT.Selection, lsGetLU);
 
         lsDef = new SelectionAdapter() {
-            public void widgetDefaultSelected( SelectionEvent e ) {
+            public void widgetDefaultSelected(SelectionEvent e) {
                 ok();
             }
         };
@@ -608,55 +610,119 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         wTimeout.addSelectionListener(lsDef);
         wPartialColumns.addSelectionListener(lsDef);
         wUpsertorDelete.addSelectionListener(lsDef);
-        return null;
+
+        shell.addShellListener(new ShellAdapter() {
+            @Override
+            public void shellClosed(ShellEvent shellEvent) {
+                cancel();
+            }
+        });
+        // TODO：可以添加数据库的名称获取
+
+        // Set the shell size, based upon previous time...
+        setSize();
+
+        getData();
+        setTableFieldCombo();
+        input.setChanged(changed);
+
+        shell.open();
+        while (!shell.isDisposed()){
+            if (!display.readAndDispatch()){
+                display.sleep();
+            }
+        }
+        return stepname;
     }
 
     /**
      * Reads in the fields from the previous steps and from the ONE next step and opens an EnterMappingDialog with this
      * information. After the user did the mapping, those information is put into the Select/Rename table.
      */
-    private void generateMappings(){
+    private void generateMappings() {
         // TODO:生成映射
     }
 
-    private void setTableFieldCombo() {
-        // TODO:关联的组件失去焦点时被调用.
+    /**
+     * Copy information from the meta-data input to the dialog fields.
+     */
+    public void getData(){
+        // TODO:获取数据
     }
+
+    private void setTableFieldCombo() {
+        Runnable fieldLoader = new Runnable() {
+            @Override
+            public void run() {
+                if (!wJdbcUrl.isDisposed() && !wTableName.isDisposed() && !wDatabaseName.isDisposed() && !wUser.isDisposed() && !wPassword.isDisposed()) {
+                    final String jdbcUrl = wJdbcUrl.getText(), tableName = wTableName.getText(), databaseName = wDatabaseName.getText(), user = wUser.getText(), password = wPassword.getText();
+
+                    // Clear
+                    for (ColumnInfo colInfo : tableFieldColumns) {
+                        colInfo.setComboValues(new String[]{});
+                    }
+                    if (!Utils.isEmpty(tableName) && !Utils.isEmpty(jdbcUrl) && !Utils.isEmpty(user)) {
+                        try {
+                            StarRocksJdbcConnectionOptions jdbcConnectionOptions = new StarRocksJdbcConnectionOptions(jdbcUrl, user, password);
+                            StarRocksJdbcConnectionProvider jdbcConnectionProvider = new StarRocksJdbcConnectionProvider(jdbcConnectionOptions);
+                            StarRocksQueryVisitor starRocksQueryVisitor = new StarRocksQueryVisitor(jdbcConnectionProvider, databaseName, tableName);
+
+                            Map<String, StarRocksDataType> fieldMap = starRocksQueryVisitor.getFieldMapping();
+                            if (null != fieldMap) {
+                                String[] fieldNames = fieldMap.keySet().toArray(new String[0]);
+                                for (ColumnInfo colInfo : tableFieldColumns) {
+                                    colInfo.setComboValues(fieldNames);
+                                }
+
+                            }
+                        } catch (Exception e) {
+                            for (ColumnInfo colInfo : tableFieldColumns) {
+                                colInfo.setComboValues(new String[]{});
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        shell.getDisplay().asyncExec(fieldLoader);
+    }
+
     protected void setComboBoxes() {
         // Something was changed in the row.
         //
         final Map<String, Integer> fields = new HashMap<String, Integer>();
 
         // Add the currentMeta fields...
-        fields.putAll(inputFields );
+        fields.putAll(inputFields);
 
         Set<String> keySet = fields.keySet();
-        List<String> entries = new ArrayList<String>( keySet );
+        List<String> entries = new ArrayList<String>(keySet);
 
-        String[] fieldNames = entries.toArray( new String[entries.size()] );
-        Const.sortStrings( fieldNames );
+        String[] fieldNames = entries.toArray(new String[entries.size()]);
+        Const.sortStrings(fieldNames);
         // return fields
-        ciReturn[1].setComboValues( fieldNames );
+        ciReturn[1].setComboValues(fieldNames);
     }
-    private void ok(){
-        if (Utils.isEmpty(wStepname.getText())){
+
+    private void ok() {
+        if (Utils.isEmpty(wStepname.getText())) {
             return;
         }
 
         // Get the information for the dialog into the input structure.
-        getInfo( input );
+        getInfo(input);
 
         dispose();
     }
 
-    private void cancel(){
-        stepname=null;
+    private void cancel() {
+        stepname = null;
         input.setChanged(changed);
         dispose();
     }
 
-    private void getInfo(StarRocksKettleConnectorMeta inf){
-        int nrfields=wReturn.nrNonEmpty();
+    private void getInfo(StarRocksKettleConnectorMeta inf) {
+        int nrfields = wReturn.nrNonEmpty();
 
         inf.allocate(nrfields);
 
@@ -670,14 +736,14 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         inf.setEnableupsertdelete(wEnableUpsertDelete.getSelection());
         inf.setUpsertOrDelete(wUpsertorDelete.getText());
 
-        if ( log.isDebug() ) {
-            logDebug( BaseMessages.getString( PKG, "StarRocksKettleConnectorDialog.Log.FoundFields", "" + nrfields ) );
+        if (log.isDebug()) {
+            logDebug(BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.Log.FoundFields", "" + nrfields));
         }
         //CHECKSTYLE:Indentation:OFF
-        for ( int i = 0; i < nrfields; i++ ) {
-            TableItem item = wReturn.getNonEmpty( i );
-            inf.getFieldTable()[i] = item.getText( 1 );
-            inf.getFieldStream()[i] = item.getText( 2 );
+        for (int i = 0; i < nrfields; i++) {
+            TableItem item = wReturn.getNonEmpty(i);
+            inf.getFieldTable()[i] = item.getText(1);
+            inf.getFieldStream()[i] = item.getText(2);
         }
 
         inf.setLoadurl(Arrays.asList(wLoadUrl.getText().split(";")));
@@ -687,11 +753,21 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         inf.setUser(wUser.getText());
         inf.setPassword(wPassword.getText());
 
-        stepname=wStepname.getText();
+        stepname = wStepname.getText();
 
     }
 
-    private void getUpdate(){
-        // TODO:
+    private void getUpdate() {
+        try {
+            RowMetaInterface r = transMeta.getPrevStepFields(stepname);
+            if (r != null) {
+                BaseStepDialog.getFieldsFromPrevious(r, wReturn, 1, new int[]{1, 2}, new int[]{}, -1, -1, null);
+            }
+        } catch (KettleException ke) {
+            new ErrorDialog(
+                    shell, BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.FailedToGetFields.DialogTitle"),
+                    BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.FailedToGetFields.DialogMessage"), ke);
+        }
+
     }
 }
