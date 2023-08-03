@@ -422,7 +422,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         partialupdate = false;
         partialcolumns = null;
         enableupsertdelete = false;
-        upsertordelete = "UPSERT";
+        upsertordelete = "";
     }
 
     public void allocate(int nrvalues) {

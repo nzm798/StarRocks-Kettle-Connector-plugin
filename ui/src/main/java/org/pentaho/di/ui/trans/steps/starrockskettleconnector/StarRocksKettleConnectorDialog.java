@@ -1,5 +1,6 @@
 package org.pentaho.di.ui.trans.steps.starrockskettleconnector;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.events.*;
@@ -8,9 +9,11 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.SourceToTargetMapping;
 import org.pentaho.di.core.annotations.PluginDialog;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowMetaInterface;
+import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
@@ -22,7 +25,9 @@ import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksDa
 import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksJdbcConnectionOptions;
 import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksJdbcConnectionProvider;
 import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksQueryVisitor;
+import org.pentaho.di.ui.core.dialog.EnterMappingDialog;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
+import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
@@ -627,8 +632,8 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         input.setChanged(changed);
 
         shell.open();
-        while (!shell.isDisposed()){
-            if (!display.readAndDispatch()){
+        while (!shell.isDisposed()) {
+            if (!display.readAndDispatch()) {
                 display.sleep();
             }
         }
@@ -640,14 +645,177 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
      * information. After the user did the mapping, those information is put into the Select/Rename table.
      */
     private void generateMappings() {
-        // TODO:生成映射
+
+        // Determine the source and target fields...
+        //
+        RowMetaInterface sourceFields;
+        List<String> targetFields = null;
+
+        try {
+            sourceFields = transMeta.getPrevStepFields(stepMeta);
+        } catch (KettleException e) {
+            new ErrorDialog(shell,
+                    BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.DoMapping.UnableToFindSourceFields.Title"),
+                    BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.DoMapping.UnableToFindSourceFields.Message"), e);
+            return;
+        }
+        // refresh data
+        input.setJdbcurl(wJdbcUrl.getText());
+        input.setTablename(wTableName.getText());
+        input.setDatabasename(wDatabaseName.getText());
+        input.setUser(wUser.getText());
+        input.setPassword(wPassword.getText());
+        if (input.getStarRocksQueryVisitor() == null) {
+            try {
+                StarRocksJdbcConnectionOptions jdbcConnectionOptions = new StarRocksJdbcConnectionOptions(input.getJdbcurl(), input.getUser(), input.getPassword());
+                StarRocksJdbcConnectionProvider jdbcConnectionProvider = new StarRocksJdbcConnectionProvider(jdbcConnectionOptions);
+                input.setStarRocksQueryVisitor(new StarRocksQueryVisitor(jdbcConnectionProvider, input.getDatabasename(), input.getTablename()));
+
+                targetFields = new ArrayList<>(input.getStarRocksQueryVisitor().getFieldMapping().keySet());
+            } catch (Exception e) {
+                new ErrorDialog(shell,
+                        BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.DoMapping.UnableToFindTargetFields.Title"),
+                        BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.UnableToFindTargetFields.Message"), e);
+            }
+        }
+
+        String[] inputNames = new String[sourceFields.size()];
+        for (int i = 0; i < sourceFields.size(); i++) {
+            ValueMetaInterface value = sourceFields.getValueMeta(i);
+            inputNames[i] = value.getName() + EnterMappingDialog.STRING_ORIGIN_SEPARATOR + value.getOrigin() + ")";
+        }
+
+        // Create the existing mapping list...
+        //
+        List<SourceToTargetMapping> mappings = new ArrayList<>();
+        StringBuilder missingSourceFields = new StringBuilder();
+        StringBuilder missingTargetFields = new StringBuilder();
+
+        int nrFields = wReturn.nrNonEmpty();
+        for (int i = 0; i < nrFields; i++) {
+            TableItem item = wReturn.getNonEmpty(i);
+            String source = item.getText(2);
+            String target = item.getText(1);
+
+            int sourceIndex = sourceFields.indexOfValue(source);
+            if (sourceIndex < 0) {
+                missingSourceFields.append(Const.CR).append("   ").append(source).append(" --> ").append(target);
+            }
+            int targetIndex = targetFields.indexOf(target);
+            if (targetIndex < 0) {
+                missingTargetFields.append(Const.CR).append("   ").append(source).append(" --> ").append(target);
+            }
+            if (sourceIndex < 0 || targetIndex < 0) {
+                continue;
+            }
+
+            SourceToTargetMapping mapping = new SourceToTargetMapping(sourceIndex, targetIndex);
+            mappings.add(mapping);
+        }
+
+        // show a confirm dialog if some missing field was found
+        //
+        if (missingSourceFields.length() > 0 || missingTargetFields.length() > 0) {
+
+            String message = "";
+            if (missingSourceFields.length() > 0) {
+                message +=
+                        BaseMessages.getString(
+                                PKG, "StarRocksKettleConnectorDialog.DoMapping.SomeSourceFieldsNotFound", missingSourceFields.toString())
+                                + Const.CR;
+            }
+            if (missingTargetFields.length() > 0) {
+                message +=
+                        BaseMessages.getString(
+                                PKG, "StarRocksKettleConnectorDialog.DoMapping.SomeTargetFieldsNotFound", missingSourceFields.toString())
+                                + Const.CR;
+            }
+            message += Const.CR;
+            message +=
+                    BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.DoMapping.SomeFieldsNotFoundContinue") + Const.CR;
+            MessageDialog.setDefaultImage(GUIResource.getInstance().getImageSpoon());
+            boolean goOn =
+                    MessageDialog.openConfirm(shell, BaseMessages.getString(
+                            PKG, "StarRocksKettleConnectorDialog.DoMapping.SomeFieldsNotFoundTitle"), message);
+            if (!goOn) {
+                return;
+            }
+        }
+        EnterMappingDialog d = new EnterMappingDialog(StarRocksKettleConnectorDialog.this.shell, sourceFields.getFieldNames(), targetFields.toArray(new String[0]), mappings);
+        mappings = d.open();
+
+        // mappings == null if the user pressed cancel
+        //
+        if (mappings != null) {
+            // Clear and re-populate!
+            //
+            wReturn.table.removeAll();
+            wReturn.table.setItemCount(mappings.size());
+            for (int i = 0; i < mappings.size(); i++) {
+                SourceToTargetMapping mapping = mappings.get(i);
+                TableItem item = wReturn.table.getItem(i);
+                item.setText(2, sourceFields.getValueMeta(mapping.getSourcePosition()).getName());
+                item.setText(1, targetFields.get(mapping.getTargetPosition()));
+            }
+            wReturn.setRowNums();
+            wReturn.optWidth(true);
+        }
     }
 
     /**
      * Copy information from the meta-data input to the dialog fields.
      */
-    public void getData(){
-        // TODO:获取数据
+    public void getData() {
+        if (log.isDebug()) {
+            logDebug(BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.Log.GettingKeyInfo"));
+        }
+        wFormat.setText(Const.NVL(input.getFormat(), ""));
+        wMaxBytes.setText(Const.NVL(String.valueOf(input.getMaxbytes()), ""));
+        wMaxRows.setText(Const.NVL(String.valueOf(input.getMaxrows()), ""));
+        wConnectTimeout.setText(Const.NVL(String.valueOf(input.getConnecttimeout()), ""));
+        wTimeout.setText(Const.NVL(String.valueOf(input.getTimeout()), ""));
+        wPartialUpdate.setSelection(input.getPartialUpdate());
+        wPartialColumns.setText(Const.NVL(String.join(",", input.getPartialcolumns()), ""));
+        wEnableUpsertDelete.setSelection(input.getEnableUpsertDelete());
+        wUpsertorDelete.setText(input.getUpsertOrDelete());
+
+        if (input.getFieldTable() != null) {
+            for (int i = 0; i < input.getFieldTable().length; i++) {
+                TableItem item = wReturn.table.getItem(i);
+                if (input.getFieldTable()[i] != null) {
+                    item.setText(1, input.getFieldTable()[i]);
+                }
+                if (input.getFieldStream()[i] != null) {
+                    item.setText(2, input.getFieldStream()[i]);
+                }
+            }
+        }
+
+        if (input.getLoadurl() != null) {
+            wLoadUrl.setText(String.join(";", input.getLoadurl()));
+        }
+        if (input.getJdbcurl() != null) {
+            wJdbcUrl.setText(input.getJdbcurl());
+        }
+        if (input.getDatabasename() != null) {
+            wDatabaseName.setText(input.getDatabasename());
+        }
+        if (input.getTablename() != null) {
+            wTableName.setText(input.getTablename());
+        }
+        if (input.getUser() != null) {
+            wUser.setText(input.getUser());
+        }
+        if (input.getPassword() != null) {
+            wPassword.setText(input.getPassword());
+        }
+
+        wReturn.setRowNums();
+        wReturn.optWidth(true);
+
+        wStepname.selectAll();
+        wStepname.setFocus();
+
     }
 
     private void setTableFieldCombo() {
