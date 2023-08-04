@@ -40,7 +40,7 @@ import java.util.*;
  * Dialog class for the StarRocks Kettle Connector step.
  */
 @PluginDialog(id = "StarRocksKettleConnector", image = "BLKMYSQL.svg", pluginType = PluginDialog.PluginType.STEP,
-        documentationUrl = "")
+        documentationUrl = "https://docs.starrocks.io/zh-cn/latest/introduction/StarRocks_intro")
 public class StarRocksKettleConnectorDialog extends BaseStepDialog implements StepDialogInterface {
 
     private static Class<?> PKG = StarRocksKettleConnectorDialog.class;
@@ -675,7 +675,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
             } catch (Exception e) {
                 new ErrorDialog(shell,
                         BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.DoMapping.UnableToFindTargetFields.Title"),
-                        BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.UnableToFindTargetFields.Message"), e);
+                        BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.DoMapping.UnableToFindTargetFields.Message"), e);
             }
         }
 

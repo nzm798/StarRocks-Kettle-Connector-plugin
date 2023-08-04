@@ -37,8 +37,8 @@ import java.util.Map;
 @Step(id = "StarRocksKettleConnector", name = "BaseStep.TypeLongDesc.StarRocksKettleConnector",
         description = "BaseStep.TypeTooltipDesc.StarRocksKettleConnector",
         categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Bulk",
-        image = "BLKMYSQL.svg",
-        documentationUrl = "http://wiki.pentaho.com/display/EAI/StarRocks+Kettle+Connector",
+        image = "StarRocks.svg",
+        documentationUrl = "https://docs.starrocks.io/zh-cn/latest/introduction/StarRocks_intro",
         i18nPackageName = "org.pentaho.di.trans.steps.starrockskettleconnector")
 @InjectionSupported(localizationPrefix = "StarRocksKettleConnector.Injection.", groups = {"FIELDS"})
 public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRocksMeta {
@@ -50,7 +50,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
     private static final long GIGA_BYTES_SCALE = MEGA_BYTES_SCALE * KILO_BYTES_SCALE;
 
     /**
-     * Url of the stream load, if you you don't specify the http/https prefix, the default http. like: `fe_ip1:http_port;http://fe_ip2:http_port;https://fe_nlb`.
+     * Url of the stream load, if you don't specify the http/https prefix, the default http. like: `fe_ip1:http_port;http://fe_ip2:http_port;https://fe_nlb`.
      */
     @Injection(name = "LOAD_URL")
     private List<String> loadurl;
