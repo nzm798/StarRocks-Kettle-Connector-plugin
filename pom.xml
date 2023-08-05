@@ -7,6 +7,7 @@
         <module>assemblies</module>
         <module>impl</module>
         <module>ui</module>
+        <module>starrocks-stream-load-sdk</module>
     </modules>
 
     <properties>
@@ -18,7 +19,7 @@
     <parent>
         <groupId>org.pentaho.di.plugins</groupId>
         <artifactId>pdi-plugins</artifactId>
-        <version>${pdi.version}</version>
+        <version>9.5.0.0-240</version>
     </parent>
 
     <artifactId>StarRocks-Kettle-Connector</artifactId>

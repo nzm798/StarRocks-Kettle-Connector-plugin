@@ -39,7 +39,7 @@ import java.util.*;
 /**
  * Dialog class for the StarRocks Kettle Connector step.
  */
-@PluginDialog(id = "StarRocksKettleConnector", image = "BLKMYSQL.svg", pluginType = PluginDialog.PluginType.STEP,
+@PluginDialog(id = "StarRocksKettleConnector", image = "StarRocks.svg", pluginType = PluginDialog.PluginType.STEP,
         documentationUrl = "https://docs.starrocks.io/zh-cn/latest/introduction/StarRocks_intro")
 public class StarRocksKettleConnectorDialog extends BaseStepDialog implements StepDialogInterface {
 
