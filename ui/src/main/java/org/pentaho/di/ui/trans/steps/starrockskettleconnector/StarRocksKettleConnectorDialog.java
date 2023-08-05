@@ -262,7 +262,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
 
         // User line...
         wlUser = new Label(shell, SWT.RIGHT);
-        wlTableName.setText(BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.User.Label"));
+        wlUser.setText(BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.User.Label"));
         props.setLook(wlUser);
         fdlUser = new FormData();
         fdlUser.left = new FormAttachment(0, 0);
