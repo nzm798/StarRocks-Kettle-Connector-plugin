@@ -188,5 +188,16 @@ MySQL [kettle_test]> select * from test_table;
 
 # Limitation
 
-- 不支持导入某一列为 JSON 的 CSV 文件的数据。
 - 不支持at-least-once和exactly-once导入方式。
+
+## 目前还未实现
+- 没有添加addHeaders(getSinkStreamLoadProperties())。未获取多余的StarRocks的参数配置。
+- 没有添加选定列插入的方法。
+- 未添加分隔符。CSV默认使用“，”，可以更改为tab
+- 如果想要实现表格中的一部分数据导入StarRocks中的一部分，中间要加上一个过滤步骤。
+- 对于数据的更新插入和删除功能还没有实现分别的删除和更新插入，只能单独实现。
+- 在kettle中现实的FieldTable名称应该和数据库的名称一样。
+- 可以尝试根据dialog中的stepname命名.labelPrefix()。
+- 在ui中可以实现自动搜索目标数据库中的表。（还未实现）
+- 可以尝试优化StarRocksQueryVisitor的创建过程，不用每次都重新创建一次
+- 映射需要实现目标表和源表的字段顺序正确，如果对应不对则需更改StarRocks目标表的字段顺序
