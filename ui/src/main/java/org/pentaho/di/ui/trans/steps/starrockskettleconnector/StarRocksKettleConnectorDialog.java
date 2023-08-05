@@ -449,7 +449,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         fdlEnableUpsertDelete.left = new FormAttachment(0, 0);
         fdlEnableUpsertDelete.right = new FormAttachment(middle, -margin);
         fdlEnableUpsertDelete.top = new FormAttachment(wPartialColumns, margin * 2);
-        wlEnableUpsertDelete.setLayoutData(fdlPartialUpdate);
+        wlEnableUpsertDelete.setLayoutData(fdlEnableUpsertDelete);
 
         wEnableUpsertDelete = new Button(shell, SWT.CHECK | SWT.LEFT);
         props.setLook(wEnableUpsertDelete);
