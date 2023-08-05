@@ -649,7 +649,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         // Determine the source and target fields...
         //
         RowMetaInterface sourceFields;
-        List<String> targetFields = null;
+        List<String> targetFields = new ArrayList<>();
 
         try {
             sourceFields = transMeta.getPrevStepFields(stepMeta);
@@ -741,7 +741,8 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
                 return;
             }
         }
-        EnterMappingDialog d = new EnterMappingDialog(StarRocksKettleConnectorDialog.this.shell, sourceFields.getFieldNames(), targetFields.toArray(new String[0]), mappings);
+        EnterMappingDialog d = new EnterMappingDialog(StarRocksKettleConnectorDialog.this.shell, sourceFields.getFieldNames(),
+                targetFields.toArray(new String[0]), mappings);
         mappings = d.open();
 
         // mappings == null if the user pressed cancel
@@ -775,9 +776,12 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         wConnectTimeout.setText(Const.NVL(String.valueOf(input.getConnecttimeout()), ""));
         wTimeout.setText(Const.NVL(String.valueOf(input.getTimeout()), ""));
         wPartialUpdate.setSelection(input.getPartialUpdate());
-        wPartialColumns.setText(Const.NVL(String.join(",", input.getPartialcolumns()), ""));
         wEnableUpsertDelete.setSelection(input.getEnableUpsertDelete());
         wUpsertorDelete.setText(input.getUpsertOrDelete());
+
+        if (input.getPartialcolumns()!=null){
+            wPartialColumns.setText(Const.NVL(String.join(",", input.getPartialcolumns()), ""));
+        }
 
         if (input.getFieldTable() != null) {
             for (int i = 0; i < input.getFieldTable().length; i++) {

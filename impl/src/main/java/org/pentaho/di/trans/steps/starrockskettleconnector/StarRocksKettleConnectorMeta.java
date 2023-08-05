@@ -423,6 +423,8 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         partialcolumns = null;
         enableupsertdelete = false;
         upsertordelete = "";
+
+        allocate(0);
     }
 
     public void allocate(int nrvalues) {
@@ -487,8 +489,10 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
 
     public String getXML() {
         StringBuilder retval = new StringBuilder(300);
-
-        String loadurl1 = String.join(";", loadurl);
+        String loadurl1 = "";
+        if (loadurl == null || loadurl.size() == 0) {
+            loadurl1 = String.join(";", loadurl);
+        }
         retval.append("    ").append(XMLHandler.addTagValue("loadurl", loadurl1));
         retval.append("    ").append(XMLHandler.addTagValue("jdbcurl", jdbcurl));
         retval.append("    ").append(XMLHandler.addTagValue("databasename", databasename));
@@ -501,7 +505,10 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         retval.append("    ").append(XMLHandler.addTagValue("connecttimeout", connecttimeout));
         retval.append("    ").append(XMLHandler.addTagValue("timeout", timeout));
         retval.append("    ").append(XMLHandler.addTagValue("partialupdate", partialupdate));
-        String partialcolumns1 = String.join(",", partialcolumns);
+        String partialcolumns1 = "";
+        if (partialcolumns == null || partialcolumns.length == 0) {
+            partialcolumns1 = String.join(",", partialcolumns);
+        }
         retval.append("    ").append(XMLHandler.addTagValue("partialcolumns", partialcolumns1));
         retval.append("    ").append(XMLHandler.addTagValue("enableupsertdelete", enableupsertdelete));
         retval.append("    ").append(XMLHandler.addTagValue("enableupsertdelete", upsertordelete));
@@ -554,7 +561,10 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
 
     public void saveRep(Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step) throws KettleException {
         try {
-            String loadurl1 = String.join(";", loadurl);
+            String loadurl1 = "";
+            if (loadurl == null || loadurl.size() == 0) {
+                loadurl1 = String.join(";", loadurl);
+            }
             rep.saveStepAttribute(id_transformation, id_step, "loadurl", loadurl1);
             rep.saveStepAttribute(id_transformation, id_step, "jdbcurl", jdbcurl);
             rep.saveStepAttribute(id_transformation, id_step, "databasename", databasename);
@@ -567,7 +577,10 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             rep.saveStepAttribute(id_transformation, id_step, "connecttimeout", connecttimeout);
             rep.saveStepAttribute(id_transformation, id_step, "timeout", timeout);
             rep.saveStepAttribute(id_transformation, id_step, "partialupdate", partialupdate);
-            String partialcolumns1 = String.join(",", partialcolumns);
+            String partialcolumns1 = "";
+            if (partialcolumns == null || partialcolumns.length == 0) {
+                partialcolumns1 = String.join(",", partialcolumns);
+            }
             rep.saveStepAttribute(id_transformation, id_step, "partialcolumns", partialcolumns1);
             rep.saveStepAttribute(id_transformation, id_step, "enableupsertdelete", enableupsertdelete);
             rep.saveStepAttribute(id_transformation, id_step, "upsertordelete", upsertordelete);
