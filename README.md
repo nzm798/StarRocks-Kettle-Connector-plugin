@@ -201,3 +201,4 @@ MySQL [kettle_test]> select * from test_table;
 - 在ui中可以实现自动搜索目标数据库中的表。（还未实现）
 - 可以尝试优化StarRocksQueryVisitor的创建过程，不用每次都重新创建一次
 - 映射需要实现目标表和源表的字段顺序正确，如果对应不对则需更改StarRocks目标表的字段顺序
+- 目前只支持StarRocks的版本为2.4以上，只实现了v2

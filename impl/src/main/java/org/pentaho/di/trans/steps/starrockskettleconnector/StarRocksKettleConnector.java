@@ -82,7 +82,6 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
         for (int i = 0; i < data.keynrs.length; i++) {
             ValueMetaInterface sourceMeta = getInputRowMeta().getValueMeta(data.keynrs[i]);
             StarRocksDataType dataType = data.fieldtype.get(meta.getFieldTable()[i]);
-            // TODO:实现数据类型的转换
             values[i] = typeConvertion(sourceMeta, dataType, r[i]);
         }
         if (supportUpsertDelete) {
