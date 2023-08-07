@@ -195,10 +195,17 @@ MySQL [kettle_test]> select * from test_table;
 - 没有添加选定列插入的方法。
 - 未添加分隔符。CSV默认使用“，”，可以更改为tab
 - 如果想要实现表格中的一部分数据导入StarRocks中的一部分，中间要加上一个过滤步骤。
-- 对于数据的更新插入和删除功能还没有实现分别的删除和更新插入，只能单独实现。
+- 对于数据的更新插入和删除功能还没有实现分别的删除和更新插入，只能单独实现。todo
 - 在kettle中现实的FieldTable名称应该和数据库的名称一样。
 - 可以尝试根据dialog中的stepname命名.labelPrefix()。
 - 在ui中可以实现自动搜索目标数据库中的表。（还未实现）
 - 可以尝试优化StarRocksQueryVisitor的创建过程，不用每次都重新创建一次
 - 映射需要实现目标表和源表的字段顺序正确，如果对应不对则需更改StarRocks目标表的字段顺序
 - 目前只支持StarRocks的版本为2.4以上，只实现了v2
+
+
+- flink connector已经可以maven实现了，同时可以获取getexception，同时可以获取运行的结果
+- bignumber的数据类型处理
+- 脏数据异常处理
+- 最大的行数目前没有用
+- 看一下mysql的数据类型处理
