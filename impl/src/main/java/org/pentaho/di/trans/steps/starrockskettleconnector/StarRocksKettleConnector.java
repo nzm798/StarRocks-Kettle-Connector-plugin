@@ -15,6 +15,7 @@ import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksDa
 import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksISerializer;
 import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksJsonSerializer;
 
+import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -71,8 +72,9 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
         }
     }
 
-    private void closeOutput() throws Exception{
+    private void closeOutput() throws Exception {
         data.streamLoadManager.flush();
+        data.streamLoadManager.close();
         // TODO:关闭刷新数据。
     }
 
@@ -138,7 +140,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                         return doubleValue;
                     }
                 case ValueMetaInterface.TYPE_BIGNUMBER:
-                    return r.toString(); // BigDecimal string representation is compatible with DECIMAL
+                    return (BigDecimal) sourceMeta.getBigNumber(r); // BigDecimal string representation is compatible with DECIMAL
                 case ValueMetaInterface.TYPE_DATE:
                     // StarRocks DATE type format: 'yyyy-MM-dd'
                     SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
@@ -148,12 +150,8 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                     SimpleDateFormat datetimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                     return datetimeFormat.format((Date) r);
                 case ValueMetaInterface.TYPE_BINARY:
-                    final byte[] bts = (byte[]) r;
-                    long value = 0;
-                    for (int i = 0; i < bts.length; i++) {
-                        value += (bts[bts.length - i - 1] & 0xffL) << (8 * i);
-                    }
-                    return value;
+                    logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.UnSupportBinary") + r.toString());
+                    return null;
 
                 case ValueMetaInterface.TYPE_INET:
                     InetAddress address = (InetAddress) r;

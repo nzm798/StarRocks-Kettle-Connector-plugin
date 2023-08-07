@@ -126,11 +126,12 @@ StarRocks Kettle Connector实现了Kettle的一个插件，它用于在StarRocks
 | Internet Address | STRING                                                       |
 | serializable     |                                                              |
 
+**Binary暂时不支持**
 **String：最后全部转换为String。**
 
 **Integer、Number：根据Kettle中数据的大小和StarRocks数据库中的数据类型对应选择最后的数据类型**
 
-**BigNumber：最后数据都转换为String**
+**BigNumber：最后数据都转换为DECIMAL**
 
 **serializable：StarRocks中无与之相对应的数据类型**
 
@@ -202,10 +203,11 @@ MySQL [kettle_test]> select * from test_table;
 - 可以尝试优化StarRocksQueryVisitor的创建过程，不用每次都重新创建一次
 - 映射需要实现目标表和源表的字段顺序正确，如果对应不对则需更改StarRocks目标表的字段顺序
 - 目前只支持StarRocks的版本为2.4以上，只实现了v2
+- 
 
 
 - flink connector已经可以maven实现了，同时可以获取getexception，同时可以获取运行的结果
-- bignumber的数据类型处理
-- 脏数据异常处理
+- 脏数据异常处理,目前是出现脏数据会直接置为null,之后实现异常数据的时候使用puerror记录下来。
 - 最大的行数目前没有用
 - 看一下mysql的数据类型处理
+- 实现数据导入的最大容错率max_filter_ratio
