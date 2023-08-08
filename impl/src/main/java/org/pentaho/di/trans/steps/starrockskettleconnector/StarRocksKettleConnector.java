@@ -28,6 +28,8 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
     private StarRocksKettleConnectorMeta meta;
     private StarRocksKettleConnectorData data;
 
+    private String logError;
+
     public StarRocksKettleConnector(StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta, Trans trans) {
         super(stepMeta, stepDataInterface, copyNr, transMeta, trans);
     }
@@ -40,11 +42,19 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
         try {
             Object[] r = getRow(); // Get row from input rowset & set row busy!
             if (r == null) { // no more input to be expected...
-
                 setOutputDone();
                 closeOutput();
                 return false;
             }
+
+            if (data.streamLoadManager.getException() != null) {
+                logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Log.AsyncWriteError"), data.streamLoadManager.getException());
+                setErrors(1);
+                stopAll();
+                setOutputDone();
+                return false;
+            }
+
             if (first) {
                 first = false;
 
@@ -74,6 +84,9 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
 
     private void closeOutput() throws Exception {
         data.streamLoadManager.flush();
+        if (data.streamLoadManager.getException() != null) {
+            logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.FailFlush"), data.streamLoadManager.getException());
+        }
         data.streamLoadManager.close();
         // TODO:关闭刷新数据。
     }
@@ -268,7 +281,8 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 .cacheMaxBytes(meta.getMaxbytes())
                 .connectTimeout(meta.getConnecttimeout())
                 .version(meta.getStarRocksQueryVisitor().getStarRocksVersion())
-                .addHeader("timeout", String.valueOf(meta.getTimeout()));
+                .addHeader("timeout", String.valueOf(meta.getTimeout()))
+                .addHeader("max_filter_ratio", String.valueOf(meta.getMaxFilterRatio()));
 
         return builder.build();
 
@@ -281,11 +295,12 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
 
         try {
             if (data.streamLoadManager != null) {
-                try {
-                    data.streamLoadManager.flush();
-                } catch (Exception e) {
-                    logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.FailFlush"), e);
+
+                data.streamLoadManager.flush();
+                if (data.streamLoadManager.getException() != null) {
+                    logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.FailFlush"), data.streamLoadManager.getException());
                 }
+
                 data.streamLoadManager.close();
                 data.streamLoadManager = null;
             }

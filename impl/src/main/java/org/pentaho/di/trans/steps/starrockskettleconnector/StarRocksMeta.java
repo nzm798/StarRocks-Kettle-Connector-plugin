@@ -21,7 +21,7 @@ public interface StarRocksMeta extends StepMetaInterface {
 
     long getMaxbytes();
 
-    long getMaxrows();
+    float getMaxFilterRatio();
 
     int getConnecttimeout();
 

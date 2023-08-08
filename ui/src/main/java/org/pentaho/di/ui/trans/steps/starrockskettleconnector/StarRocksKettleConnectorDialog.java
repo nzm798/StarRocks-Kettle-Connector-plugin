@@ -77,9 +77,9 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
     private TextVar wMaxBytes;
     private FormData fdlMaxBytes, fdMaxBytes;
 
-    private Label wlMaxRows;
-    private TextVar wMaxRows;
-    private FormData fdlMaxRows, fdMaxRows;
+    private Label wlMaxFilterRatio;
+    private TextVar wMaxFilterRatio;
+    private FormData fdlMaxFilterRatio, fdMaxFilterRatio;
 
     private Label wlConnectTimeout;
     private TextVar wConnectTimeout;
@@ -340,24 +340,24 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         fdMaxBytes.right = new FormAttachment(100, 0);
         wMaxBytes.setLayoutData(fdMaxBytes);
 
-        // Max Rows line...
-        wlMaxRows = new Label(shell, SWT.RIGHT);
-        wlMaxRows.setText(BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.MaxRows.Label"));
-        props.setLook(wlMaxRows);
-        fdlMaxRows = new FormData();
-        fdlMaxRows.left = new FormAttachment(0, 0);
-        fdlMaxRows.right = new FormAttachment(middle, -margin);
-        fdlMaxRows.top = new FormAttachment(wMaxBytes, margin * 2);
-        wlMaxRows.setLayoutData(fdlMaxRows);
+        // Max Filter Ratio line...
+        wlMaxFilterRatio = new Label(shell, SWT.RIGHT);
+        wlMaxFilterRatio.setText(BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.MaxFilterRatio.Label"));
+        props.setLook(wlMaxFilterRatio);
+        fdlMaxFilterRatio = new FormData();
+        fdlMaxFilterRatio.left = new FormAttachment(0, 0);
+        fdlMaxFilterRatio.right = new FormAttachment(middle, -margin);
+        fdlMaxFilterRatio.top = new FormAttachment(wMaxBytes, margin * 2);
+        wlMaxFilterRatio.setLayoutData(fdlMaxFilterRatio);
 
-        wMaxRows = new TextVar(transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
-        props.setLook(wMaxRows);
-        wMaxRows.addModifyListener(lsMod);
-        fdMaxRows = new FormData();
-        fdMaxRows.left = new FormAttachment(middle, 0);
-        fdMaxRows.top = new FormAttachment(wMaxBytes, margin * 2);
-        fdMaxRows.right = new FormAttachment(100, 0);
-        wMaxRows.setLayoutData(fdMaxRows);
+        wMaxFilterRatio = new TextVar(transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
+        props.setLook(wMaxFilterRatio);
+        wMaxFilterRatio.addModifyListener(lsMod);
+        fdMaxFilterRatio = new FormData();
+        fdMaxFilterRatio.left = new FormAttachment(middle, 0);
+        fdMaxFilterRatio.top = new FormAttachment(wMaxBytes, margin * 2);
+        fdMaxFilterRatio.right = new FormAttachment(100, 0);
+        wMaxFilterRatio.setLayoutData(fdMaxFilterRatio);
 
         // Connect Timeout line ...
         wlConnectTimeout = new Label(shell, SWT.RIGHT);
@@ -366,7 +366,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         fdlConnectTimeout = new FormData();
         fdlConnectTimeout.left = new FormAttachment(0, 0);
         fdlConnectTimeout.right = new FormAttachment(middle, -margin);
-        fdlConnectTimeout.top = new FormAttachment(wMaxRows, margin * 2);
+        fdlConnectTimeout.top = new FormAttachment(wMaxFilterRatio, margin * 2);
         wlConnectTimeout.setLayoutData(fdlConnectTimeout);
 
         wConnectTimeout = new TextVar(transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
@@ -374,7 +374,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         wConnectTimeout.addModifyListener(lsMod);
         fdConnectTimeout = new FormData();
         fdConnectTimeout.left = new FormAttachment(middle, 0);
-        fdConnectTimeout.top = new FormAttachment(wMaxRows, margin * 2);
+        fdConnectTimeout.top = new FormAttachment(wMaxFilterRatio, margin * 2);
         fdConnectTimeout.right = new FormAttachment(100, 0);
         wConnectTimeout.setLayoutData(fdConnectTimeout);
 
@@ -570,7 +570,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         };
         new Thread(runnable).start();
 
-        // TODO：增加按键的监听
+
         lsOK = new Listener() {
             @Override
             public void handleEvent(Event event) {
@@ -610,7 +610,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         wPassword.addSelectionListener(lsDef);
         wFormat.addSelectionListener(lsDef);
         wMaxBytes.addSelectionListener(lsDef);
-        wMaxRows.addSelectionListener(lsDef);
+        wMaxFilterRatio.addSelectionListener(lsDef);
         wConnectTimeout.addSelectionListener(lsDef);
         wTimeout.addSelectionListener(lsDef);
         wPartialColumns.addSelectionListener(lsDef);
@@ -772,7 +772,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         }
         wFormat.setText(Const.NVL(input.getFormat(), ""));
         wMaxBytes.setText(Const.NVL(String.valueOf(input.getMaxbytes()), ""));
-        wMaxRows.setText(Const.NVL(String.valueOf(input.getMaxrows()), ""));
+        wMaxFilterRatio.setText(Const.NVL(String.valueOf(input.getMaxFilterRatio()), ""));
         wConnectTimeout.setText(Const.NVL(String.valueOf(input.getConnecttimeout()), ""));
         wTimeout.setText(Const.NVL(String.valueOf(input.getTimeout()), ""));
         wPartialUpdate.setSelection(input.getPartialUpdate());
@@ -900,7 +900,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
 
         inf.setFormat(wFormat.getText());
         inf.setMaxbytes(Long.valueOf(wMaxBytes.getText()));
-        inf.setMaxrows(Long.valueOf(wMaxRows.getText()));
+        inf.setMaxFilterRatio(Long.valueOf(wMaxFilterRatio.getText()));
         inf.setConnecttimeout(Integer.valueOf(wConnectTimeout.getText()));
         inf.setTimeout(Integer.valueOf(wTimeout.getText()));
         inf.setPartialupdate(wPartialUpdate.getSelection());

@@ -102,10 +102,10 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
     private long maxbytes;
 
     /**
-     * The maximum number of rows that can be loaded into StarRocks at one time.
+     * The maximum fault tolerance rate for the import job.
      */
-    @Injection(name = "MAXROWS")
-    private long maxrows;
+    @Injection(name = "MAXFILTERRATIO")
+    private float max_filter_ratio;
 
     /**
      * Timeout period for connecting to the load-url.
@@ -274,17 +274,20 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
     }
 
     /**
-     * @return Return the maximum number of rows that can be loaded into StarRocks at one time.
+     * @return Return the maximum fault tolerance rate for the import job.
      */
-    public long getMaxrows() {
-        return maxrows;
+    public float getMaxFilterRatio() {
+        if (max_filter_ratio > 1 || max_filter_ratio < 0) {
+            return 0;
+        }
+        return max_filter_ratio;
     }
 
     /**
-     * @param maxrows The maximum number of rows that can be loaded into StarRocks at one time.
+     * @param max_filter_ratio The maximum fault tolerance rate for the import job.
      */
-    public void setMaxrows(long maxrows) {
-        this.maxrows = maxrows;
+    public void setMaxFilterRatio(float max_filter_ratio) {
+        this.max_filter_ratio = max_filter_ratio;
     }
 
     /**
@@ -416,7 +419,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         password = "";
         format = "CSV";
         maxbytes = 90L * MEGA_BYTES_SCALE;
-        maxrows = 500000L;
+        max_filter_ratio = 0;
         connecttimeout = 1000;
         timeout = 600;
         partialupdate = false;
@@ -457,7 +460,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             password = XMLHandler.getTagValue(stepnode, "password");
             format = XMLHandler.getTagValue(stepnode, "format");
             maxbytes = Long.valueOf(XMLHandler.getTagValue(stepnode, "maxbytes"));
-            maxrows = Long.valueOf(XMLHandler.getTagValue(stepnode, "maxrows"));
+            max_filter_ratio = Float.valueOf(XMLHandler.getTagValue(stepnode, "maxfilterratio"));
             connecttimeout = Integer.valueOf(XMLHandler.getTagValue(stepnode, "connecttimeout"));
             timeout = Integer.valueOf(XMLHandler.getTagValue(stepnode, "timeout"));
             String partialcolumns1 = XMLHandler.getTagValue(stepnode, "partialcolumns");
@@ -501,7 +504,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         retval.append("    ").append(XMLHandler.addTagValue("password", password));
         retval.append("    ").append(XMLHandler.addTagValue("format", format));
         retval.append("    ").append(XMLHandler.addTagValue("maxbytes", maxbytes));
-        retval.append("    ").append(XMLHandler.addTagValue("maxrows", maxrows));
+        retval.append("    ").append(XMLHandler.addTagValue("maxfilterratio", max_filter_ratio));
         retval.append("    ").append(XMLHandler.addTagValue("connecttimeout", connecttimeout));
         retval.append("    ").append(XMLHandler.addTagValue("timeout", timeout));
         retval.append("    ").append(XMLHandler.addTagValue("partialupdate", partialupdate));
@@ -533,7 +536,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             password = rep.getStepAttributeString(id_step, "password");
             format = rep.getStepAttributeString(id_step, "format");
             maxbytes = Long.valueOf(rep.getStepAttributeString(id_step, "maxbytes"));
-            maxrows = Long.valueOf(rep.getStepAttributeString(id_step, "maxrows"));
+            max_filter_ratio = Float.valueOf(rep.getStepAttributeString(id_step, "maxfilterratio"));
             connecttimeout = (int) rep.getStepAttributeInteger(id_step, "connecttimeout");
             timeout = (int) rep.getStepAttributeInteger(id_step, "timeout");
             partialupdate = rep.getStepAttributeBoolean(id_step, "partialupdate");
@@ -573,7 +576,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             rep.saveStepAttribute(id_transformation, id_step, "password", password);
             rep.saveStepAttribute(id_transformation, id_step, "format", format);
             rep.saveStepAttribute(id_transformation, id_step, "maxbytes", maxbytes);
-            rep.saveStepAttribute(id_transformation, id_step, "maxrows", maxrows);
+            rep.saveStepAttribute(id_transformation, id_step, "maxfilterratio", max_filter_ratio);
             rep.saveStepAttribute(id_transformation, id_step, "connecttimeout", connecttimeout);
             rep.saveStepAttribute(id_transformation, id_step, "timeout", timeout);
             rep.saveStepAttribute(id_transformation, id_step, "partialupdate", partialupdate);

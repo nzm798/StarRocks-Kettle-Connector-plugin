@@ -83,9 +83,10 @@ StarRocks Kettle Connector实现了Kettle的一个插件，它用于在StarRocks
 // The maximum size of data that can be loaded into StarRocks at a time. 
 // Valid values: 64 MB to 10 GB. 
 'maxbytes'=94371840
-// The maximum number of rows that can be loaded into StarRocks at one time.
-// Valid values: 64000 to 5000000.
-'maxrows'=500000
+// Specifies the maximum fault tolerance rate for the import job, which is the maximum 
+// proportion of data rows that the import job can tolerate filtered out due to substandard data quality. 
+// Value range: 0~1. Default value: 0.
+'max_filter_ratio'=0
 // Timeout period for connecting to the load-url. 
 // Valid values: 100 to 60000
 'connect-timeout'=1000
@@ -206,7 +207,7 @@ MySQL [kettle_test]> select * from test_table;
 - 
 
 
-- flink connector已经可以maven实现了，同时可以获取getexception，同时可以获取运行的结果
+- 获取不到ErrorUrl得不到Errorlog。
 - 脏数据异常处理,目前是出现脏数据会直接置为null,之后实现异常数据的时候使用puerror记录下来。
 - 最大的行数目前没有用
 - 看一下mysql的数据类型处理
