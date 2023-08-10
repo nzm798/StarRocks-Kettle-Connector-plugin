@@ -84,11 +84,13 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
 
     private void closeOutput() throws Exception {
         data.streamLoadManager.flush();
+        data.streamLoadManager.close();
+
         if (data.streamLoadManager.getException() != null) {
             logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.FailFlush"), data.streamLoadManager.getException());
         }
-        data.streamLoadManager.close();
-        // TODO:关闭刷新数据。
+        data.streamLoadManager = null;
+
     }
 
     // Data type conversion.
@@ -297,11 +299,12 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
             if (data.streamLoadManager != null) {
 
                 data.streamLoadManager.flush();
+                data.streamLoadManager.close();
+
                 if (data.streamLoadManager.getException() != null) {
                     logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.FailFlush"), data.streamLoadManager.getException());
                 }
 
-                data.streamLoadManager.close();
                 data.streamLoadManager = null;
             }
         } catch (Exception e) {
