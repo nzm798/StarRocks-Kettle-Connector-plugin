@@ -120,7 +120,7 @@ StarRocks Kettle Connector实现了Kettle的一个插件，它用于在StarRocks
 | Date             | DATE                                                         |
 | Boolean          | BOOLEAN                                                      |
 | Integer          | TINYINT 、SMALLINT 、INT 、BIGINT                            |
-| Number           | FLOAT 、DOUBLE                                               |
+| Number           | DOUBLE                                               |
 | BigNumber        | LARGEINT、[DECIMAL](https://docs.starrocks.io/zh-cn/latest/sql-reference/sql-statements/data-types/DECIMAL)、DOUBLE。 |
 | Binary           | BINARY                                                       |
 | Timestamp        | DATETIME                                                     |

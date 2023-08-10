@@ -10,10 +10,7 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.*;
-import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksCsvSerializer;
-import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksDataType;
-import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksISerializer;
-import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.StarRocksJsonSerializer;
+import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.*;
 
 import java.math.BigDecimal;
 import java.net.InetAddress;
@@ -148,12 +145,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                         return integerValue;
                     }
                 case ValueMetaInterface.TYPE_NUMBER:
-                    Double doubleValue = (Double) r;
-                    if (doubleValue >= -Float.MAX_VALUE && doubleValue <= Float.MAX_VALUE && type == StarRocksDataType.FLOAT) {
-                        return doubleValue.floatValue();
-                    } else {
-                        return doubleValue;
-                    }
+                    return (Double) sourceMeta.getNumber(r);
                 case ValueMetaInterface.TYPE_BIGNUMBER:
                     return (BigDecimal) sourceMeta.getBigNumber(r); // BigDecimal string representation is compatible with DECIMAL
                 case ValueMetaInterface.TYPE_DATE:
@@ -194,6 +186,12 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
             } else {
                 data.columns = new String[meta.getFieldTable().length];
                 System.arraycopy(meta.getFieldTable(), 0, data.columns, 0, meta.getFieldTable().length);
+            }
+            if (meta.getStarRocksQueryVisitor() == null) {
+                // Used to find field information in Starrocks.
+                StarRocksJdbcConnectionOptions jdbcConnectionOptions = new StarRocksJdbcConnectionOptions(meta.getJdbcurl(), meta.getUser(), meta.getPassword());
+                StarRocksJdbcConnectionProvider jdbcConnectionProvider = new StarRocksJdbcConnectionProvider(jdbcConnectionOptions);
+                meta.setStarRocksQueryVisitor(new StarRocksQueryVisitor(jdbcConnectionProvider, meta.getDatabasename(), meta.getTablename()));
             }
             try {
                 data.streamLoadManager = new StreamLoadManagerV2(getProperties(meta, data), true);

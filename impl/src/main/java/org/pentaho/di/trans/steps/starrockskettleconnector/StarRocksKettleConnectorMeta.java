@@ -7,6 +7,7 @@ import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.exception.KettleXMLException;
+import org.pentaho.di.core.injection.AfterInjection;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.row.RowMetaInterface;
@@ -458,13 +459,18 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             tablename = XMLHandler.getTagValue(stepnode, "tablename");
             user = XMLHandler.getTagValue(stepnode, "user");
             password = XMLHandler.getTagValue(stepnode, "password");
+            if (password == null) {
+                password = "";
+            }
             format = XMLHandler.getTagValue(stepnode, "format");
             maxbytes = Long.valueOf(XMLHandler.getTagValue(stepnode, "maxbytes"));
             max_filter_ratio = Float.valueOf(XMLHandler.getTagValue(stepnode, "maxfilterratio"));
             connecttimeout = Integer.valueOf(XMLHandler.getTagValue(stepnode, "connecttimeout"));
             timeout = Integer.valueOf(XMLHandler.getTagValue(stepnode, "timeout"));
             String partialcolumns1 = XMLHandler.getTagValue(stepnode, "partialcolumns");
-            partialcolumns = partialcolumns1.split(",");
+            if (partialcolumns1 != null && partialcolumns1.length() != 0) {
+                partialcolumns = partialcolumns1.split(",");
+            }
 
             partialupdate = "Y".equalsIgnoreCase(XMLHandler.getTagValue(stepnode, "partialupdate"));
             enableupsertdelete = "Y".equalsIgnoreCase(XMLHandler.getTagValue(stepnode, "enableupsertdelete"));
@@ -492,8 +498,9 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
 
     public String getXML() {
         StringBuilder retval = new StringBuilder(300);
+
         String loadurl1 = "";
-        if (loadurl == null || loadurl.size() == 0) {
+        if (loadurl != null && loadurl.size() != 0) {
             loadurl1 = String.join(";", loadurl);
         }
         retval.append("    ").append(XMLHandler.addTagValue("loadurl", loadurl1));
@@ -509,7 +516,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         retval.append("    ").append(XMLHandler.addTagValue("timeout", timeout));
         retval.append("    ").append(XMLHandler.addTagValue("partialupdate", partialupdate));
         String partialcolumns1 = "";
-        if (partialcolumns == null || partialcolumns.length == 0) {
+        if (partialcolumns != null && partialcolumns.length != 0) {
             partialcolumns1 = String.join(",", partialcolumns);
         }
         retval.append("    ").append(XMLHandler.addTagValue("partialcolumns", partialcolumns1));
@@ -517,6 +524,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         retval.append("    ").append(XMLHandler.addTagValue("enableupsertdelete", upsertordelete));
 
         for (int i = 0; i < fieldTable.length; i++) {
+            retval.append("      <mapping>").append(Const.CR);
             retval.append("        ").append(XMLHandler.addTagValue("stream_name", fieldTable[i]));
             retval.append("        ").append(XMLHandler.addTagValue("field_name", fieldStream[i]));
             retval.append("      </mapping>").append(Const.CR);
@@ -534,6 +542,9 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             tablename = rep.getStepAttributeString(id_step, "tablename");
             user = rep.getStepAttributeString(id_step, "user");
             password = rep.getStepAttributeString(id_step, "password");
+            if (password == null) {
+                password = "";
+            }
             format = rep.getStepAttributeString(id_step, "format");
             maxbytes = Long.valueOf(rep.getStepAttributeString(id_step, "maxbytes"));
             max_filter_ratio = Float.valueOf(rep.getStepAttributeString(id_step, "maxfilterratio"));
@@ -541,7 +552,9 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             timeout = (int) rep.getStepAttributeInteger(id_step, "timeout");
             partialupdate = rep.getStepAttributeBoolean(id_step, "partialupdate");
             String partialcolumns1 = rep.getStepAttributeString(id_step, "partialcolumns");
-            partialcolumns = partialcolumns1.split(",");
+            if (partialcolumns1 != null && partialcolumns1.length() != 0) {
+                partialcolumns = partialcolumns1.split(",");
+            }
             enableupsertdelete = rep.getStepAttributeBoolean(id_step, "enableupsertdelete");
             upsertordelete = rep.getStepAttributeString(id_step, "upsertordelete");
 
@@ -565,7 +578,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
     public void saveRep(Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step) throws KettleException {
         try {
             String loadurl1 = "";
-            if (loadurl == null || loadurl.size() == 0) {
+            if (loadurl != null && loadurl.size() != 0) {
                 loadurl1 = String.join(";", loadurl);
             }
             rep.saveStepAttribute(id_transformation, id_step, "loadurl", loadurl1);
@@ -581,7 +594,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             rep.saveStepAttribute(id_transformation, id_step, "timeout", timeout);
             rep.saveStepAttribute(id_transformation, id_step, "partialupdate", partialupdate);
             String partialcolumns1 = "";
-            if (partialcolumns == null || partialcolumns.length == 0) {
+            if (partialcolumns != null && partialcolumns.length != 0) {
                 partialcolumns1 = String.join(",", partialcolumns);
             }
             rep.saveStepAttribute(id_transformation, id_step, "partialcolumns", partialcolumns1);
@@ -780,5 +793,20 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
     public boolean isOpAutoProjectionInJson() {
         String version = getStarRocksQueryVisitor().getStarRocksVersion();
         return version == null || version.length() > 0 && !version.trim().startsWith("1.");
+    }
+
+    /**
+     * If we use injection we can have different arrays lengths.
+     * We need synchronize them for consistency behavior with UI
+     */
+    @AfterInjection
+    public void afterInjectionSynchronization() {
+        int nrFields = (fieldTable == null) ? -1 : fieldTable.length;
+        if (nrFields <= 0) {
+            return;
+        }
+        String[][] rtnStrings = Utils.normalizeArrays(nrFields, fieldStream);
+        fieldStream = rtnStrings[0];
+
     }
 }

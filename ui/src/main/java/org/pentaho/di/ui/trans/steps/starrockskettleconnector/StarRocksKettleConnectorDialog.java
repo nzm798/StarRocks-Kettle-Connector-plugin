@@ -900,7 +900,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
 
         inf.setFormat(wFormat.getText());
         inf.setMaxbytes(Long.valueOf(wMaxBytes.getText()));
-        inf.setMaxFilterRatio(Long.valueOf(wMaxFilterRatio.getText()));
+        inf.setMaxFilterRatio(Float.valueOf(wMaxFilterRatio.getText()));
         inf.setConnecttimeout(Integer.valueOf(wConnectTimeout.getText()));
         inf.setTimeout(Integer.valueOf(wTimeout.getText()));
         inf.setPartialupdate(wPartialUpdate.getSelection());
