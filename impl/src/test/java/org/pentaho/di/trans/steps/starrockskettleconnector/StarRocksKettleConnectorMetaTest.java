@@ -26,7 +26,7 @@ public class StarRocksKettleConnectorMetaTest {
         public List<String> getTestObject() {
             List<String> loadUrlList = new ArrayList<>();
             for (int i = 0; i < arraySize; i++) {
-                loadUrlList.add("http://example.com/" + i);
+                loadUrlList.add("192.168.110.120:" + i);
             }
             return loadUrlList;
         }
