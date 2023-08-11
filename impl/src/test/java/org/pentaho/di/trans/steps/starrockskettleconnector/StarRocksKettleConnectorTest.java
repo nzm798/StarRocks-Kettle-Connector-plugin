@@ -99,7 +99,7 @@ public class StarRocksKettleConnectorTest {
 
         IMetaStore metaStore = null;
         StarRocksKettleConnectorMeta newMeta = new StarRocksKettleConnectorMeta();
-        newMeta.loadXML(stepNode, metaStore);
+        newMeta.loadXML(stepNode, null, metaStore);
 
         assertEquals(lmeta.getLoadurl(), newMeta.getLoadurl());
         assertEquals(lmeta.getJdbcurl(), newMeta.getJdbcurl());

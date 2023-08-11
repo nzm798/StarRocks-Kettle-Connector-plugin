@@ -39,10 +39,27 @@ public class StarRocksKettleConnectorMetaTest {
             return original.equals(actual);
         }
     }
+
+    public class FloatFieldLoadSaveValidator implements FieldLoadSaveValidator<Float> {
+
+        @Override
+        public Float getTestObject() {
+            return 123.45f;
+        }
+
+        @Override
+        public boolean validateTestObject(Float aFloat, Object o) {
+            if (o instanceof Float) {
+                return aFloat.equals(o);
+            }
+            return false;
+        }
+    }
+
     @Test
     public void testRoundTrip() throws KettleException {
-        List<String> attributes = Arrays.asList("loadurl","jdbcurl", "databasename", "tablename", "user", "password", "format", "maxbytes"
-                /*"max_filter_ratio"*/, "connecttimeout", "timeout", "fieldTable", "fieldStream", "partialupdate", "partialcolumns", "enableupsertdelete",
+        List<String> attributes = Arrays.asList("loadurl", "jdbcurl", "databasename", "tablename", "user", "password", "format", "maxbytes",
+                "max_filter_ratio", "connecttimeout", "timeout", "stream_name", "field_name", "partialupdate", "partialcolumns", "enableupsertdelete",
                 "upsertordelete");
 
         Map<String, String> getterMap = new HashMap<>();
@@ -54,11 +71,11 @@ public class StarRocksKettleConnectorMetaTest {
         getterMap.put("password", "getPassword");
         getterMap.put("format", "getFormat");
         getterMap.put("maxbytes", "getMaxbytes");
-        //getterMap.put("max_filter_ratio", "getMaxFilterRatio");
+        getterMap.put("max_filter_ratio", "getMaxFilterRatio");
         getterMap.put("connecttimeout", "getConnecttimeout");
         getterMap.put("timeout", "getTimeout");
-        getterMap.put("fieldTable", "getFieldTable");
-        getterMap.put("fieldStream", "getFieldStream");
+        getterMap.put("stream_name", "getFieldTable");
+        getterMap.put("field_name", "getFieldStream");
         getterMap.put("partialupdate", "getPartialUpdate");
         getterMap.put("partialcolumns", "getPartialcolumns");
         getterMap.put("enableupsertdelete", "getEnableUpsertDelete");
@@ -73,11 +90,11 @@ public class StarRocksKettleConnectorMetaTest {
         setterMap.put("password", "setPassword");
         setterMap.put("format", "setFormat");
         setterMap.put("maxbytes", "setMaxbytes");
-        //setterMap.put("max_filter_ratio", "setMaxFilterRatio");
+        setterMap.put("max_filter_ratio", "setMaxFilterRatio");
         setterMap.put("connecttimeout", "setConnecttimeout");
         setterMap.put("timeout", "setTimeout");
-        setterMap.put("fieldTable", "setFieldTable");
-        setterMap.put("fieldStream", "setFieldStream");
+        setterMap.put("stream_name", "setFieldTable");
+        setterMap.put("field_name", "setFieldStream");
         setterMap.put("partialupdate", "setPartialupdate");
         setterMap.put("partialcolumns", "setPartialcolumns");
         setterMap.put("enableupsertdelete", "setEnableupsertdelete");
@@ -91,10 +108,13 @@ public class StarRocksKettleConnectorMetaTest {
         FieldLoadSaveValidator<String[]> stringArrayLoadSaveValidator =
                 new ArrayLoadSaveValidator<String>(new StringLoadSaveValidator(), 25);
 
+
         FieldLoadSaveValidator<List<String>> loadUrlLoadSaveValidator = new LoadUrlFieldLoadSaveValidator(5);
-        fieldLoadSaveValidatorAttributeMap.put("loadurl",loadUrlLoadSaveValidator);
-        fieldLoadSaveValidatorAttributeMap.put("fieldStream", stringArrayLoadSaveValidator);
-        fieldLoadSaveValidatorAttributeMap.put("fieldTable", stringArrayLoadSaveValidator);
+        FieldLoadSaveValidator<Float> floatFieldLoadSaveValidator = new FloatFieldLoadSaveValidator();
+        fieldLoadSaveValidatorAttributeMap.put("loadurl", loadUrlLoadSaveValidator);
+        fieldLoadSaveValidatorAttributeMap.put("max_filter_ratio", floatFieldLoadSaveValidator);
+        fieldLoadSaveValidatorAttributeMap.put("stream_name", stringArrayLoadSaveValidator);
+        fieldLoadSaveValidatorAttributeMap.put("field_name", stringArrayLoadSaveValidator);
 
         LoadSaveTester loadSaveTester =
                 new LoadSaveTester(StarRocksKettleConnectorMeta.class, attributes, getterMap, setterMap,

@@ -4,6 +4,7 @@ import org.pentaho.di.core.CheckResult;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
+import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.exception.KettleXMLException;
@@ -441,12 +442,12 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         int nrvalues = fieldTable.length;
         retval.allocate(nrvalues);
         System.arraycopy(fieldTable, 0, retval.fieldTable, 0, nrvalues);
-        System.arraycopy(fieldTable, 0, retval.fieldTable, 0, nrvalues);
+        System.arraycopy(fieldStream, 0, retval.fieldStream, 0, nrvalues);
 
         return retval;
     }
 
-    public void loadXML(Node stepnode, IMetaStore metaStore) throws KettleXMLException {
+    public void loadXML(Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore) throws KettleXMLException {
         readData(stepnode);
     }
 
@@ -476,6 +477,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             enableupsertdelete = "Y".equalsIgnoreCase(XMLHandler.getTagValue(stepnode, "enableupsertdelete"));
 
             upsertordelete = XMLHandler.getTagValue(stepnode, "upsertordelete");
+
             // Field data mapping
             int nrvalues = XMLHandler.countNodes(stepnode, "mapping");
             allocate(nrvalues);
@@ -521,7 +523,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         }
         retval.append("    ").append(XMLHandler.addTagValue("partialcolumns", partialcolumns1));
         retval.append("    ").append(XMLHandler.addTagValue("enableupsertdelete", enableupsertdelete));
-        retval.append("    ").append(XMLHandler.addTagValue("enableupsertdelete", upsertordelete));
+        retval.append("    ").append(XMLHandler.addTagValue("upsertordelete", upsertordelete));
 
         for (int i = 0; i < fieldTable.length; i++) {
             retval.append("      <mapping>").append(Const.CR);
@@ -533,7 +535,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         return retval.toString();
     }
 
-    public void readRep(Repository rep, IMetaStore metaStore, ObjectId id_step) throws KettleException {
+    public void readRep(Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases) throws KettleException {
         try {
             String loadurl1 = rep.getStepAttributeString(id_step, "loadurl");
             loadurl = Arrays.asList(loadurl1.split(";"));
