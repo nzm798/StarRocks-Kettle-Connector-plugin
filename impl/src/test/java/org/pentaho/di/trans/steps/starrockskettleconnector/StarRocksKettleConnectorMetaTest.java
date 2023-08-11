@@ -1,5 +1,6 @@
 package org.pentaho.di.trans.steps.starrockskettleconnector;
 
+import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.pentaho.di.core.exception.KettleException;
@@ -121,5 +122,27 @@ public class StarRocksKettleConnectorMetaTest {
                         fieldLoadSaveValidatorAttributeMap, new HashMap<String, FieldLoadSaveValidator<?>>());
 
         loadSaveTester.testSerialization();
+    }
+
+    @Test
+    public void testPDIStarrocks() throws Exception {
+        StarRocksKettleConnectorMeta starRocksKettleConnector= new StarRocksKettleConnectorMeta();
+        starRocksKettleConnector.setFieldTable( new String[] { "table1", "table2", "table3" } );
+        starRocksKettleConnector.setFieldStream( new String[] { "stream1" } );
+        starRocksKettleConnector.setTablename( "test_tablename" );
+
+        try {
+            String badXml = starRocksKettleConnector.getXML();
+            Assert.fail( "Before calling afterInjectionSynchronization, should have thrown an ArrayIndexOOB" );
+        } catch ( Exception expected ) {
+            // Do Nothing
+        }
+        starRocksKettleConnector.afterInjectionSynchronization();
+        //run without a exception
+        String ktrXml = starRocksKettleConnector.getXML();
+
+        int targetSz = starRocksKettleConnector.getFieldTable().length;
+        Assert.assertEquals( targetSz, starRocksKettleConnector.getFieldStream().length );
+
     }
 }
