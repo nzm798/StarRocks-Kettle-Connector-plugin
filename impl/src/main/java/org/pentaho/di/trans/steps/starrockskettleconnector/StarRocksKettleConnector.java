@@ -14,6 +14,7 @@ import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.*;
 
 import java.math.BigDecimal;
 import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -120,7 +121,18 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
             switch (sourceMeta.getType()) {
                 case ValueMetaInterface.TYPE_STRING:
                     // Treat as JSON if it starts with '{' or '['
-                    String sValue = r.toString();
+                    String sValue;
+                    if (sourceMeta.isStorageBinaryString()){
+                        String binaryString=(String) r;
+                        byte[] bytes = new byte[binaryString.length() / 8];
+                        for (int i = 0; i < binaryString.length(); i += 8) {
+                            byte b = (byte) Integer.parseInt(binaryString.substring(i, i + 8), 2);
+                            bytes[i / 8] = b;
+                        }
+                        sValue = new String(bytes, StandardCharsets.UTF_8);
+                    }else {
+                        sValue=sourceMeta.getString(r);
+                    }
                     if (type == null) {
                         return sValue;
                     }
@@ -132,9 +144,22 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                         return sValue;
                     }
                 case ValueMetaInterface.TYPE_BOOLEAN:
-                    return (Boolean) r ? 1L : 0L;
+                    Boolean boolenaValue;
+                    if (sourceMeta.isStorageBinaryString()){
+                        String binaryBoolean=(String) r;
+                        boolenaValue=binaryBoolean.equals("1");
+                    }else {
+                        boolenaValue=sourceMeta.getBoolean(r);
+                    }
+                    return boolenaValue;
                 case ValueMetaInterface.TYPE_INTEGER:
-                    Long integerValue = (Long) r;
+                    Long integerValue;
+                    if (sourceMeta.isStorageBinaryString()){
+                        String binaryInteger=(String) r;
+                        integerValue=Long.parseLong(binaryInteger,2);
+                    }else {
+                        integerValue=sourceMeta.getInteger(r);
+                    }
                     if (integerValue >= Byte.MIN_VALUE && integerValue <= Byte.MAX_VALUE && type == StarRocksDataType.TINYINT) {
                         return integerValue.byteValue();
                     } else if (integerValue >= Short.MIN_VALUE && integerValue <= Short.MAX_VALUE && type == StarRocksDataType.SMALLINT) {
@@ -145,7 +170,14 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                         return integerValue;
                     }
                 case ValueMetaInterface.TYPE_NUMBER:
-                    return (Double) sourceMeta.getNumber(r);
+                    Double doubleValue;
+                    if (sourceMeta.isStorageBinaryString()){
+                        long longBits = Long.parseLong((String) r, 2);
+                        doubleValue = Double.longBitsToDouble(longBits);
+                    }else {
+                        doubleValue=sourceMeta.getNumber(r);
+                    }
+                    return doubleValue;
                 case ValueMetaInterface.TYPE_BIGNUMBER:
                     return (BigDecimal) sourceMeta.getBigNumber(r); // BigDecimal string representation is compatible with DECIMAL
                 case ValueMetaInterface.TYPE_DATE:
