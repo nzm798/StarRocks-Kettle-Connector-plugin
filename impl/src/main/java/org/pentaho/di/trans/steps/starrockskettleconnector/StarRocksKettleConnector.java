@@ -15,6 +15,7 @@ import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.*;
 import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -122,16 +123,16 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 case ValueMetaInterface.TYPE_STRING:
                     // Treat as JSON if it starts with '{' or '['
                     String sValue;
-                    if (sourceMeta.isStorageBinaryString()){
-                        String binaryString=(String) r;
+                    if (sourceMeta.isStorageBinaryString()) {
+                        String binaryString = (String) r;
                         byte[] bytes = new byte[binaryString.length() / 8];
                         for (int i = 0; i < binaryString.length(); i += 8) {
                             byte b = (byte) Integer.parseInt(binaryString.substring(i, i + 8), 2);
                             bytes[i / 8] = b;
                         }
                         sValue = new String(bytes, StandardCharsets.UTF_8);
-                    }else {
-                        sValue=sourceMeta.getString(r);
+                    } else {
+                        sValue = sourceMeta.getString(r);
                     }
                     if (type == null) {
                         return sValue;
@@ -145,20 +146,20 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                     }
                 case ValueMetaInterface.TYPE_BOOLEAN:
                     Boolean boolenaValue;
-                    if (sourceMeta.isStorageBinaryString()){
-                        String binaryBoolean=(String) r;
-                        boolenaValue=binaryBoolean.equals("1");
-                    }else {
-                        boolenaValue=sourceMeta.getBoolean(r);
+                    if (sourceMeta.isStorageBinaryString()) {
+                        String binaryBoolean = (String) r;
+                        boolenaValue = binaryBoolean.equals("1");
+                    } else {
+                        boolenaValue = sourceMeta.getBoolean(r);
                     }
                     return boolenaValue;
                 case ValueMetaInterface.TYPE_INTEGER:
                     Long integerValue;
-                    if (sourceMeta.isStorageBinaryString()){
-                        String binaryInteger=(String) r;
-                        integerValue=Long.parseLong(binaryInteger,2);
-                    }else {
-                        integerValue=sourceMeta.getInteger(r);
+                    if (sourceMeta.isStorageBinaryString()) {
+                        String binaryInteger = (String) r;
+                        integerValue = Long.parseLong(binaryInteger, 2);
+                    } else {
+                        integerValue = sourceMeta.getInteger(r);
                     }
                     if (integerValue >= Byte.MIN_VALUE && integerValue <= Byte.MAX_VALUE && type == StarRocksDataType.TINYINT) {
                         return integerValue.byteValue();
@@ -171,29 +172,73 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                     }
                 case ValueMetaInterface.TYPE_NUMBER:
                     Double doubleValue;
-                    if (sourceMeta.isStorageBinaryString()){
+                    if (sourceMeta.isStorageBinaryString()) {
                         long longBits = Long.parseLong((String) r, 2);
                         doubleValue = Double.longBitsToDouble(longBits);
-                    }else {
-                        doubleValue=sourceMeta.getNumber(r);
+                    } else {
+                        doubleValue = sourceMeta.getNumber(r);
                     }
                     return doubleValue;
                 case ValueMetaInterface.TYPE_BIGNUMBER:
-                    return (BigDecimal) sourceMeta.getBigNumber(r); // BigDecimal string representation is compatible with DECIMAL
+                    BigDecimal decimalValue;
+                    if (sourceMeta.isStorageBinaryString()) {
+                        long longBits = Long.parseLong((String) r, 2); // 解析为长整数
+                        double doublesvalue = Double.longBitsToDouble(longBits); // 将长整数位转换为double
+                        decimalValue = new BigDecimal(doublesvalue);
+                    } else {
+                        decimalValue = sourceMeta.getBigNumber(r);
+                    }
+                    return decimalValue; // BigDecimal string representation is compatible with DECIMAL
                 case ValueMetaInterface.TYPE_DATE:
-                    // StarRocks DATE type format: 'yyyy-MM-dd'
-                    SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
-                    return dateFormatter.format((Date) r);
+                    Date dateValue = null;
+                    if (sourceMeta.isStorageBinaryString()) {
+                        Long milliseconds = Long.parseLong((String) r, 2);
+                        dateValue = new Date(milliseconds);
+                    } else {
+                        dateValue = sourceMeta.getDate(r);
+                    }
+                    SimpleDateFormat dateFormatter;
+                    if (type == StarRocksDataType.DATE) {
+                        // StarRocks DATE type format: 'yyyy-MM-dd'
+                        dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+                    } else {
+                        // StarRocks DATETIME type format: 'yyyy-MM-dd HH:mm:ss'
+                        dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    }
+                    return dateFormatter.format(dateValue);
                 case ValueMetaInterface.TYPE_TIMESTAMP:
-                    // StarRocks DATETIME type format: 'yyyy-MM-dd HH:mm:ss'
-                    SimpleDateFormat datetimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                    return datetimeFormat.format((Date) r);
+                    java.sql.Timestamp timestampValue = null;
+                    if (sourceMeta.isStorageBinaryString()) {
+                        Long milliseconds = Long.parseLong((String) r, 2);
+                        timestampValue = new java.sql.Timestamp(milliseconds);
+                    } else {
+                        timestampValue = (Timestamp) r;
+                    }
+                    SimpleDateFormat timestampFormat;
+                    if (type == StarRocksDataType.DATE) {
+                        // StarRocks DATE type format: 'yyyy-MM-dd'
+                        timestampFormat = new SimpleDateFormat("yyyy-MM-dd");
+                    } else {
+                        // StarRocks DATETIME type format: 'yyyy-MM-dd HH:mm:ss'
+                        timestampFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    }
+                    return timestampFormat.format(timestampValue);
                 case ValueMetaInterface.TYPE_BINARY:
                     logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.UnSupportBinary") + r.toString());
                     return null;
 
                 case ValueMetaInterface.TYPE_INET:
-                    InetAddress address = (InetAddress) r;
+                    InetAddress address;
+                    if (sourceMeta.isStorageBinaryString()) {
+                        long ipAddressLong = Long.parseLong((String) r, 2);
+                        byte[] ipAddressBytes = new byte[4];
+                        for (int i = 0; i < 4; i++) {
+                            ipAddressBytes[3 - i] = (byte) ((ipAddressLong >> (8 * i)) & 0xFF);
+                        }
+                        address = InetAddress.getByAddress(ipAddressBytes);
+                    } else {
+                        address = (InetAddress) r;
+                    }
                     return address.getHostAddress();
                 default:
                     logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.UnknowType") + ValueMetaInterface.typeCodes[sourceMeta.getType()]);

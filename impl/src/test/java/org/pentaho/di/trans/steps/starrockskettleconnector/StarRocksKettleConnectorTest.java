@@ -12,9 +12,7 @@ import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.StepPluginType;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
-import org.pentaho.di.core.row.value.ValueMetaBase;
-import org.pentaho.di.core.row.value.ValueMetaBigNumber;
-import org.pentaho.di.core.row.value.ValueMetaNumber;
+import org.pentaho.di.core.row.value.*;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.junit.rules.RestorePDIEngineEnvironment;
 import org.pentaho.di.trans.Trans;
@@ -27,6 +25,7 @@ import org.w3c.dom.Node;
 
 import java.math.BigDecimal;
 import java.net.InetAddress;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -129,50 +128,57 @@ public class StarRocksKettleConnectorTest {
 
         StarRocksKettleConnector connector = lder;
         ValueMetaInterface mockMeta = mock(ValueMetaBase.class);
+        RowMeta rm = new RowMeta();
         // Test for String
-        when(mockMeta.getType()).thenReturn(ValueMetaInterface.TYPE_STRING);
-        assertEquals("normalString", connector.typeConvertion(mockMeta, null, "normalString"));
-        assertEquals(JSON.parse("{\"test\":\"data\"}"), connector.typeConvertion(mockMeta, StarRocksDataType.JSON, "{\"test\":\"data\"}"));
+        ValueMetaString vs = new ValueMetaString("string");
+        rm.addValueMeta(vs);
+        assertEquals("normalString", connector.typeConvertion(rm.getValueMeta(0), null, "normalString"));
+        assertEquals(JSON.parse("{\"test\":\"data\"}"), connector.typeConvertion(rm.getValueMeta(0), StarRocksDataType.JSON, "{\"test\":\"data\"}"));
 
         // Test for Boolean
-        when(mockMeta.getType()).thenReturn(ValueMetaInterface.TYPE_BOOLEAN);
-        assertEquals(1L, connector.typeConvertion(mockMeta, null, true));
-        assertEquals(0L, connector.typeConvertion(mockMeta, null, false));
+        ValueMetaBoolean vb=new ValueMetaBoolean("boolean");
+        rm.addValueMeta(vb);
+        assertEquals(true, connector.typeConvertion(rm.getValueMeta(1), null, true));
+        assertEquals(false, connector.typeConvertion(rm.getValueMeta(1), null, false));
 
         // Test for Integer
-        when(mockMeta.getType()).thenReturn(ValueMetaInterface.TYPE_INTEGER);
-        assertEquals((byte) 1, connector.typeConvertion(mockMeta, StarRocksDataType.TINYINT, 1L));
-        assertEquals((short) 300, connector.typeConvertion(mockMeta, StarRocksDataType.SMALLINT, 300L));
-        assertEquals(50000, connector.typeConvertion(mockMeta, StarRocksDataType.INT, 50000L));
+        ValueMetaInteger vi=new ValueMetaInteger("integer");
+        rm.addValueMeta(vi);
+        assertEquals((byte) 1, connector.typeConvertion(rm.getValueMeta(2), StarRocksDataType.TINYINT, 1L));
+        assertEquals((short) 300, connector.typeConvertion(rm.getValueMeta(2), StarRocksDataType.SMALLINT, 300L));
+        assertEquals(50000, connector.typeConvertion(rm.getValueMeta(2), StarRocksDataType.INT, 50000L));
 
         // Test for Number
-        RowMeta rm = new RowMeta();
-        ValueMetaNumber vm = new ValueMetaNumber("I don't want NPE!");
-        rm.addValueMeta(vm);
-        assertEquals(100140.123, connector.typeConvertion(rm.getValueMeta(0), null, 100140.123));
+        ValueMetaNumber vn = new ValueMetaNumber("number");
+        rm.addValueMeta(vn);
+        assertEquals(100140.123, connector.typeConvertion(rm.getValueMeta(3), null, 100140.123));
 
         // Test for BigDecimal
-        ValueMetaBigNumber vb = new ValueMetaBigNumber("bignumber");
-        rm.addValueMeta(vb);
+        ValueMetaBigNumber vbg = new ValueMetaBigNumber("bignumber");
+        rm.addValueMeta(vbg);
         BigDecimal bigDecimal = new BigDecimal("1000000.123");
-        assertEquals(bigDecimal, connector.typeConvertion(rm.getValueMeta(1), null, bigDecimal));
+        assertEquals(bigDecimal, connector.typeConvertion(rm.getValueMeta(4), null, bigDecimal));
 
         // Test for Date
-        when(mockMeta.getType()).thenReturn(ValueMetaInterface.TYPE_DATE);
+        ValueMetaDate vd=new ValueMetaDate("date");
+        rm.addValueMeta(vd);
         SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
         Date date = dateFormatter.parse("2022-08-05");
-        assertEquals("2022-08-05", connector.typeConvertion(mockMeta, null, date));
+        assertEquals("2022-08-05", connector.typeConvertion(rm.getValueMeta(5), StarRocksDataType.DATE, date));
 
         // Test for Timestamp
-        when(mockMeta.getType()).thenReturn(ValueMetaInterface.TYPE_TIMESTAMP);
+        ValueMetaTimestamp vt=new ValueMetaTimestamp("timestamp");
+        rm.addValueMeta(vt);
         SimpleDateFormat datetimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date dateTime = datetimeFormat.parse("2022-08-05 12:34:56");
-        assertEquals("2022-08-05 12:34:56", connector.typeConvertion(mockMeta, null, dateTime));
+        Timestamp timestamp=new Timestamp(dateTime.getTime());
+        assertEquals("2022-08-05 12:34:56", connector.typeConvertion(rm.getValueMeta(6), StarRocksDataType.DATETIME, timestamp));
 
         // Test for InetAddress
-        when(mockMeta.getType()).thenReturn(ValueMetaInterface.TYPE_INET);
+        ValueMetaInternetAddress vint=new ValueMetaInternetAddress("inetaddress");
+        rm.addValueMeta(vint);
         InetAddress address = InetAddress.getByName("www.example.com");
-        assertEquals("93.184.216.34", connector.typeConvertion(mockMeta, null, address));
+        assertEquals("93.184.216.34", connector.typeConvertion(rm.getValueMeta(7), null, address));
     }
 
 }
