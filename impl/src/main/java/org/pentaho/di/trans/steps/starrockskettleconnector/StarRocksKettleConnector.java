@@ -13,7 +13,10 @@ import org.pentaho.di.trans.step.*;
 import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.*;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.net.InetAddress;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -124,13 +127,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                     // Treat as JSON if it starts with '{' or '['
                     String sValue;
                     if (sourceMeta.isStorageBinaryString()) {
-                        String binaryString = (String) r;
-                        byte[] bytes = new byte[binaryString.length() / 8];
-                        for (int i = 0; i < binaryString.length(); i += 8) {
-                            byte b = (byte) Integer.parseInt(binaryString.substring(i, i + 8), 2);
-                            bytes[i / 8] = b;
-                        }
-                        sValue = new String(bytes, StandardCharsets.UTF_8);
+                        sValue = new String((byte[]) r, StandardCharsets.UTF_8);
                     } else {
                         sValue = sourceMeta.getString(r);
                     }
@@ -156,8 +153,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 case ValueMetaInterface.TYPE_INTEGER:
                     Long integerValue;
                     if (sourceMeta.isStorageBinaryString()) {
-                        String binaryInteger = (String) r;
-                        integerValue = Long.parseLong(binaryInteger, 2);
+                        integerValue=Long.parseLong(new String((byte[]) r,StandardCharsets.UTF_8));
                     } else {
                         integerValue = sourceMeta.getInteger(r);
                     }
@@ -173,8 +169,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 case ValueMetaInterface.TYPE_NUMBER:
                     Double doubleValue;
                     if (sourceMeta.isStorageBinaryString()) {
-                        long longBits = Long.parseLong((String) r, 2);
-                        doubleValue = Double.longBitsToDouble(longBits);
+                        doubleValue=Double.parseDouble(new String((byte[]) r,StandardCharsets.UTF_8));
                     } else {
                         doubleValue = sourceMeta.getNumber(r);
                     }
@@ -182,9 +177,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 case ValueMetaInterface.TYPE_BIGNUMBER:
                     BigDecimal decimalValue;
                     if (sourceMeta.isStorageBinaryString()) {
-                        long longBits = Long.parseLong((String) r, 2); // 解析为长整数
-                        double doublesvalue = Double.longBitsToDouble(longBits); // 将长整数位转换为double
-                        decimalValue = new BigDecimal(doublesvalue);
+                        decimalValue=new BigDecimal(new String((byte[]) r,StandardCharsets.UTF_8));
                     } else {
                         decimalValue = sourceMeta.getBigNumber(r);
                     }
@@ -192,54 +185,50 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 case ValueMetaInterface.TYPE_DATE:
                     Date dateValue = null;
                     if (sourceMeta.isStorageBinaryString()) {
-                        Long milliseconds = Long.parseLong((String) r, 2);
+                        Long milliseconds = Long.parseLong(new String((byte[]) r,StandardCharsets.UTF_8));
                         dateValue = new Date(milliseconds);
                     } else {
                         dateValue = sourceMeta.getDate(r);
                     }
-                    SimpleDateFormat dateFormatter;
-                    if (type == StarRocksDataType.DATE) {
-                        // StarRocks DATE type format: 'yyyy-MM-dd'
-                        dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
-                    } else {
-                        // StarRocks DATETIME type format: 'yyyy-MM-dd HH:mm:ss'
-                        dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                    }
-                    return dateFormatter.format(dateValue);
+//                    SimpleDateFormat dateFormatter;
+//                    if (type == StarRocksDataType.DATE) {
+//                        // StarRocks DATE type format: 'yyyy-MM-dd'
+//                        dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+//                    } else {
+//                        // StarRocks DATETIME type format: 'yyyy-MM-dd HH:mm:ss'
+//                        dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//                    }
+                    return dateValue;
                 case ValueMetaInterface.TYPE_TIMESTAMP:
                     java.sql.Timestamp timestampValue = null;
                     if (sourceMeta.isStorageBinaryString()) {
-                        Long milliseconds = Long.parseLong((String) r, 2);
+                        Long milliseconds = Long.parseLong(new String((byte[]) r,StandardCharsets.UTF_8));
                         timestampValue = new java.sql.Timestamp(milliseconds);
                     } else {
                         timestampValue = (Timestamp) r;
                     }
-                    SimpleDateFormat timestampFormat;
-                    if (type == StarRocksDataType.DATE) {
-                        // StarRocks DATE type format: 'yyyy-MM-dd'
-                        timestampFormat = new SimpleDateFormat("yyyy-MM-dd");
-                    } else {
-                        // StarRocks DATETIME type format: 'yyyy-MM-dd HH:mm:ss'
-                        timestampFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                    }
-                    return timestampFormat.format(timestampValue);
+//                    SimpleDateFormat timestampFormat;
+//                    if (type == StarRocksDataType.DATE) {
+//                        // StarRocks DATE type format: 'yyyy-MM-dd'
+//                        timestampFormat = new SimpleDateFormat("yyyy-MM-dd");
+//                    } else {
+//                        // StarRocks DATETIME type format: 'yyyy-MM-dd HH:mm:ss'
+//                        timestampFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//                    }
+                    return timestampValue;
                 case ValueMetaInterface.TYPE_BINARY:
                     logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.UnSupportBinary") + r.toString());
                     return null;
 
                 case ValueMetaInterface.TYPE_INET:
-                    InetAddress address;
+                    String address;
                     if (sourceMeta.isStorageBinaryString()) {
-                        long ipAddressLong = Long.parseLong((String) r, 2);
-                        byte[] ipAddressBytes = new byte[4];
-                        for (int i = 0; i < 4; i++) {
-                            ipAddressBytes[3 - i] = (byte) ((ipAddressLong >> (8 * i)) & 0xFF);
-                        }
-                        address = InetAddress.getByAddress(ipAddressBytes);
+
+                        address = new String((byte[]) r,StandardCharsets.UTF_8);
                     } else {
-                        address = (InetAddress) r;
+                        address = (String) r;
                     }
-                    return address.getHostAddress();
+                    return address;
                 default:
                     logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.UnknowType") + ValueMetaInterface.typeCodes[sourceMeta.getType()]);
                     return null;

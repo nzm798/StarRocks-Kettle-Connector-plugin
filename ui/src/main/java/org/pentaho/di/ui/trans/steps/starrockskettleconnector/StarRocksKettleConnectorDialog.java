@@ -777,7 +777,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         wTimeout.setText(Const.NVL(String.valueOf(input.getTimeout()), ""));
         wPartialUpdate.setSelection(input.getPartialUpdate());
         wEnableUpsertDelete.setSelection(input.getEnableUpsertDelete());
-        wUpsertorDelete.setText(input.getUpsertOrDelete());
+        wUpsertorDelete.setText(Const.NVL(input.getUpsertOrDelete(),""));
 
         if (input.getPartialcolumns()!=null){
             wPartialColumns.setText(Const.NVL(String.join(",", input.getPartialcolumns()), ""));

@@ -53,7 +53,7 @@ public class StarRocksKettleConnectorTest {
         transMeta.setName("StarRocksKettleConnector");
 
         Map<String, String> vars = new HashMap<>();
-        vars.put("loadurl", "10.112.133.149:8083;10.112.143.215:8083;10.112.156.187:8083");
+        vars.put("loadurl", "10.112.133.149:8030;10.112.143.215:8030;10.112.156.187:8030");
         vars.put("jdbcurl", "jdbc:mysql://10.112.133.149:9030");
         vars.put("databasename", "somedatabase");
         vars.put("tablename", "sometable");
@@ -164,7 +164,7 @@ public class StarRocksKettleConnectorTest {
         rm.addValueMeta(vd);
         SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
         Date date = dateFormatter.parse("2022-08-05");
-        assertEquals("2022-08-05", connector.typeConvertion(rm.getValueMeta(5), StarRocksDataType.DATE, date));
+        assertEquals(date, connector.typeConvertion(rm.getValueMeta(5), StarRocksDataType.DATE, date));
 
         // Test for Timestamp
         ValueMetaTimestamp vt=new ValueMetaTimestamp("timestamp");
@@ -172,13 +172,12 @@ public class StarRocksKettleConnectorTest {
         SimpleDateFormat datetimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date dateTime = datetimeFormat.parse("2022-08-05 12:34:56");
         Timestamp timestamp=new Timestamp(dateTime.getTime());
-        assertEquals("2022-08-05 12:34:56", connector.typeConvertion(rm.getValueMeta(6), StarRocksDataType.DATETIME, timestamp));
+        assertEquals(timestamp, connector.typeConvertion(rm.getValueMeta(6), StarRocksDataType.DATETIME, timestamp));
 
         // Test for InetAddress
         ValueMetaInternetAddress vint=new ValueMetaInternetAddress("inetaddress");
         rm.addValueMeta(vint);
-        InetAddress address = InetAddress.getByName("www.example.com");
-        assertEquals("93.184.216.34", connector.typeConvertion(rm.getValueMeta(7), null, address));
+        assertEquals("93.184.216.34", connector.typeConvertion(rm.getValueMeta(7), null, "93.184.216.34"));
     }
 
 }
