@@ -127,7 +127,6 @@ public class StarRocksKettleConnectorTest {
     public void testTypeConvertionForAllTypes() throws KettleException, Exception {
 
         StarRocksKettleConnector connector = lder;
-        ValueMetaInterface mockMeta = mock(ValueMetaBase.class);
         RowMeta rm = new RowMeta();
         // Test for String
         ValueMetaString vs = new ValueMetaString("string");
