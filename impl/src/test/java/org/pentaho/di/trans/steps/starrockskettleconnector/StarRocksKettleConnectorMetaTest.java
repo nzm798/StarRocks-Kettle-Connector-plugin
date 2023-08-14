@@ -59,7 +59,7 @@ public class StarRocksKettleConnectorMetaTest {
 
     @Test
     public void testRoundTrip() throws KettleException {
-        List<String> attributes = Arrays.asList("loadurl", "jdbcurl", "databasename", "tablename", "user", "password", "format", "maxbytes",
+        List<String> attributes = Arrays.asList("loadurl", "jdbcurl", "databasename", "tablename", "user", "password", "format", "maxbytes","scanningFrequency",
                 "max_filter_ratio", "connecttimeout", "timeout", "stream_name", "field_name", "partialupdate", "partialcolumns", "enableupsertdelete",
                 "upsertordelete");
 
@@ -72,6 +72,7 @@ public class StarRocksKettleConnectorMetaTest {
         getterMap.put("password", "getPassword");
         getterMap.put("format", "getFormat");
         getterMap.put("maxbytes", "getMaxbytes");
+        getterMap.put("scanningFrequency","getScanningFrequency");
         getterMap.put("max_filter_ratio", "getMaxFilterRatio");
         getterMap.put("connecttimeout", "getConnecttimeout");
         getterMap.put("timeout", "getTimeout");
@@ -91,6 +92,7 @@ public class StarRocksKettleConnectorMetaTest {
         setterMap.put("password", "setPassword");
         setterMap.put("format", "setFormat");
         setterMap.put("maxbytes", "setMaxbytes");
+        setterMap.put("scanningFrequency","setScanningFrequency");
         setterMap.put("max_filter_ratio", "setMaxFilterRatio");
         setterMap.put("connecttimeout", "setConnecttimeout");
         setterMap.put("timeout", "setTimeout");

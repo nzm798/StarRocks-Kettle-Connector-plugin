@@ -42,9 +42,9 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
         data = (StarRocksKettleConnectorData) sdi;
 
         try {
-            Long a=new Long(1);
-            Object[] r=new Object[]{(Object) a,(Object) "Lili",(Object) 19.58};
-            //Object[] r = getRow(); // Get row from input rowset & set row busy!
+            //Long a=new Long(1);
+            //Object[] r=new Object[]{(Object) a,(Object) "Lili",(Object) 19.58};
+            Object[] r = getRow(); // Get row from input rowset & set row busy!
             if (r == null) { // no more input to be expected...
                 setOutputDone();
                 closeOutput();
@@ -341,12 +341,14 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
         }
 
         StreamLoadProperties.Builder builder = StreamLoadProperties.builder()
+                .labelPrefix("StarRocks-Kettle")
                 .loadUrls(meta.getLoadurl().toArray(new String[0]))
                 .jdbcUrl(meta.getJdbcurl())
                 .defaultTableProperties(defaultTablePropertiesBuilder.build())
                 .username(meta.getUser())
                 .password(meta.getPassword())
                 .cacheMaxBytes(meta.getMaxbytes())
+                .scanningFrequency(meta.getScanningFrequency())
                 .connectTimeout(meta.getConnecttimeout())
                 .version(meta.getStarRocksQueryVisitor().getStarRocksVersion())
                 .addHeader("timeout", String.valueOf(meta.getTimeout()))

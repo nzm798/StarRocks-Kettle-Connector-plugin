@@ -148,6 +148,10 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
      * Whether to implement update insert or delete when the enableupsertdelete function is enabled.
      */
     private String upsertordelete;
+    /**
+     * The frequency of Stream load writes.
+     */
+    private long scanningFrequency;
 
     /**
      * @param loadurl Url of the stream load.
@@ -410,6 +414,20 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         this.upsertordelete = upsertOrDelete;
     }
 
+    /**
+     * @return return the frequency of Stream load writes.
+     */
+    public long getScanningFrequency() {
+        return this.scanningFrequency;
+    }
+
+    /**
+     * @param scanningFrequency The frequency of Stream load writes.
+     */
+    public void setScanningFrequency(long scanningFrequency) {
+        this.scanningFrequency = scanningFrequency;
+    }
+
     public void setDefault() {
         fieldTable = null;
         loadurl = null;
@@ -428,6 +446,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         partialcolumns = null;
         enableupsertdelete = false;
         upsertordelete = "";
+        scanningFrequency = 50L;
 
         allocate(0);
     }
@@ -477,7 +496,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             enableupsertdelete = "Y".equalsIgnoreCase(XMLHandler.getTagValue(stepnode, "enableupsertdelete"));
 
             upsertordelete = XMLHandler.getTagValue(stepnode, "upsertordelete");
-
+            scanningFrequency = Long.valueOf(XMLHandler.getTagValue(stepnode, "scanningFrequency"));
             // Field data mapping
             int nrvalues = XMLHandler.countNodes(stepnode, "mapping");
             allocate(nrvalues);
@@ -524,6 +543,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         retval.append("    ").append(XMLHandler.addTagValue("partialcolumns", partialcolumns1));
         retval.append("    ").append(XMLHandler.addTagValue("enableupsertdelete", enableupsertdelete));
         retval.append("    ").append(XMLHandler.addTagValue("upsertordelete", upsertordelete));
+        retval.append("    ").append(XMLHandler.addTagValue("scanningFrequency", scanningFrequency));
 
         for (int i = 0; i < fieldTable.length; i++) {
             retval.append("      <mapping>").append(Const.CR);
@@ -559,7 +579,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             }
             enableupsertdelete = rep.getStepAttributeBoolean(id_step, "enableupsertdelete");
             upsertordelete = rep.getStepAttributeString(id_step, "upsertordelete");
-
+            scanningFrequency = Long.valueOf(rep.getStepAttributeString(id_step, "scanningFrequency"));
             int nrvalues = rep.countNrStepAttributes(id_step, "stream_name");
 
             allocate(nrvalues);
@@ -602,6 +622,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             rep.saveStepAttribute(id_transformation, id_step, "partialcolumns", partialcolumns1);
             rep.saveStepAttribute(id_transformation, id_step, "enableupsertdelete", enableupsertdelete);
             rep.saveStepAttribute(id_transformation, id_step, "upsertordelete", upsertordelete);
+            rep.saveStepAttribute(id_transformation, id_step, "scanningFrequency", scanningFrequency);
 
             for (int i = 0; i < fieldTable.length; i++) {
                 rep.saveStepAttribute(id_transformation, id_step, i, "stream_name", fieldTable[i]);

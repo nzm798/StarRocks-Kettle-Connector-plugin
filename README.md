@@ -204,7 +204,6 @@ MySQL [kettle_test]> select * from test_table;
 - 可以尝试优化StarRocksQueryVisitor的创建过程，不用每次都重新创建一次
 - 映射需要实现目标表和源表的字段顺序正确，如果对应不对则需更改StarRocks目标表的字段顺序
 - 目前只支持StarRocks的版本为2.4以上，只实现了v2
-- 加入刷新频率目前是50
 
 
 - 获取不到ErrorUrl得不到Errorlog。

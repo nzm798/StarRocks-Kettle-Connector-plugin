@@ -105,6 +105,10 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
     private CCombo wUpsertorDelete;
     private FormData fdlUpsertorDelete, fdUpsertorDelete;
 
+    private Label wlScanningFrequency;
+    private TextVar wScanningFrequency;
+    private FormData fdlScanningFrequency,fdScanningFrequency;
+
     private Label wlReturn;
     private TableView wReturn;
     private FormData fdlReturn, fdReturn;
@@ -340,6 +344,25 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         fdMaxBytes.right = new FormAttachment(100, 0);
         wMaxBytes.setLayoutData(fdMaxBytes);
 
+        //Scanning Frequency line...
+        wlScanningFrequency=new Label(shell,SWT.RIGHT);
+        wlScanningFrequency.setText(BaseMessages.getString(PKG,"StarRocksKettleConnectorDialog.ScanningFrequency.Label"));
+        props.setLook(wlScanningFrequency);
+        fdlScanningFrequency=new FormData();
+        fdlScanningFrequency.left = new FormAttachment(0, 0);
+        fdlScanningFrequency.right = new FormAttachment(middle, -margin);
+        fdlScanningFrequency.top = new FormAttachment(wMaxBytes, margin * 2);
+        wlScanningFrequency.setLayoutData(fdlScanningFrequency);
+
+        wScanningFrequency=new TextVar(transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
+        props.setLook(wScanningFrequency);
+        wScanningFrequency.addModifyListener(lsMod);
+        fdScanningFrequency=new FormData();
+        fdScanningFrequency.left = new FormAttachment(middle, 0);
+        fdScanningFrequency.top = new FormAttachment(wMaxBytes, margin * 2);
+        fdScanningFrequency.right = new FormAttachment(100, 0);
+        wScanningFrequency.setLayoutData(fdScanningFrequency);
+
         // Max Filter Ratio line...
         wlMaxFilterRatio = new Label(shell, SWT.RIGHT);
         wlMaxFilterRatio.setText(BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.MaxFilterRatio.Label"));
@@ -347,7 +370,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         fdlMaxFilterRatio = new FormData();
         fdlMaxFilterRatio.left = new FormAttachment(0, 0);
         fdlMaxFilterRatio.right = new FormAttachment(middle, -margin);
-        fdlMaxFilterRatio.top = new FormAttachment(wMaxBytes, margin * 2);
+        fdlMaxFilterRatio.top = new FormAttachment(wScanningFrequency, margin * 2);
         wlMaxFilterRatio.setLayoutData(fdlMaxFilterRatio);
 
         wMaxFilterRatio = new TextVar(transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
@@ -355,7 +378,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         wMaxFilterRatio.addModifyListener(lsMod);
         fdMaxFilterRatio = new FormData();
         fdMaxFilterRatio.left = new FormAttachment(middle, 0);
-        fdMaxFilterRatio.top = new FormAttachment(wMaxBytes, margin * 2);
+        fdMaxFilterRatio.top = new FormAttachment(wScanningFrequency, margin * 2);
         fdMaxFilterRatio.right = new FormAttachment(100, 0);
         wMaxFilterRatio.setLayoutData(fdMaxFilterRatio);
 
@@ -610,6 +633,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         wPassword.addSelectionListener(lsDef);
         wFormat.addSelectionListener(lsDef);
         wMaxBytes.addSelectionListener(lsDef);
+        wScanningFrequency.addSelectionListener(lsDef);
         wMaxFilterRatio.addSelectionListener(lsDef);
         wConnectTimeout.addSelectionListener(lsDef);
         wTimeout.addSelectionListener(lsDef);
@@ -772,6 +796,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         }
         wFormat.setText(Const.NVL(input.getFormat(), ""));
         wMaxBytes.setText(Const.NVL(String.valueOf(input.getMaxbytes()), ""));
+        wScanningFrequency.setText(Const.NVL(String.valueOf(input.getScanningFrequency()),""));
         wMaxFilterRatio.setText(Const.NVL(String.valueOf(input.getMaxFilterRatio()), ""));
         wConnectTimeout.setText(Const.NVL(String.valueOf(input.getConnecttimeout()), ""));
         wTimeout.setText(Const.NVL(String.valueOf(input.getTimeout()), ""));
@@ -900,6 +925,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
 
         inf.setFormat(wFormat.getText());
         inf.setMaxbytes(Long.valueOf(wMaxBytes.getText()));
+        inf.setScanningFrequency(Long.valueOf(wScanningFrequency.getText()));
         inf.setMaxFilterRatio(Float.valueOf(wMaxFilterRatio.getText()));
         inf.setConnecttimeout(Integer.valueOf(wConnectTimeout.getText()));
         inf.setTimeout(Integer.valueOf(wTimeout.getText()));

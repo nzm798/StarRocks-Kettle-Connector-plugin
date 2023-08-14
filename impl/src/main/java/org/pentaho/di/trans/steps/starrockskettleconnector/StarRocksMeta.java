@@ -31,4 +31,6 @@ public interface StarRocksMeta extends StepMetaInterface {
 
     boolean getEnableUpsertDelete();
     String getUpsertOrDelete();
+
+    long getScanningFrequency();
 }

@@ -72,6 +72,7 @@ public class StarRocksKettleConnectorTest {
         lmeta.setPassword(transMeta.environmentSubstitute("${password}"));
         lmeta.setFormat(transMeta.environmentSubstitute("${format}"));
         lmeta.setMaxbytes(94371840);
+        lmeta.setScanningFrequency(50L);
         lmeta.setConnecttimeout(1000);
         lmeta.setTimeout(600);
         lmeta.setMaxFilterRatio(0);
