@@ -418,6 +418,9 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
      * @return return the frequency of Stream load writes.
      */
     public long getScanningFrequency() {
+        if (this.scanningFrequency < 50) {
+            return 50L;
+        }
         return this.scanningFrequency;
     }
 

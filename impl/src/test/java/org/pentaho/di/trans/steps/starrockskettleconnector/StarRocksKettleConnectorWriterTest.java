@@ -43,7 +43,7 @@ public class StarRocksKettleConnectorWriterTest {
         transMeta.setName("StarRocksKettleConnector");
 
         Map<String, String> vars = new HashMap<>();
-        vars.put("loadurl", "10.112.133.149:8030");
+        vars.put("loadurl", "10.112.133.149:8040");
         vars.put("jdbcurl", "jdbc:mysql://10.112.133.149:9030");
         vars.put("databasename", "kettle_test");
         vars.put("tablename", "student");
@@ -62,6 +62,7 @@ public class StarRocksKettleConnectorWriterTest {
         lmeta.setPassword(transMeta.environmentSubstitute("${password}"));
         lmeta.setFormat(transMeta.environmentSubstitute("${format}"));
         lmeta.setMaxbytes(12);
+        lmeta.setScanningFrequency(50);
         lmeta.setConnecttimeout(1000);
         lmeta.setTimeout(600);
         lmeta.setMaxFilterRatio(0);
