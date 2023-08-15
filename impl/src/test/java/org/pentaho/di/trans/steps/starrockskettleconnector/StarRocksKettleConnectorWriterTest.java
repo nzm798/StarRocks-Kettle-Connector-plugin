@@ -64,7 +64,7 @@ public class StarRocksKettleConnectorWriterTest {
         lmeta.setMaxbytes(12);
         lmeta.setScanningFrequency(50L);
         lmeta.setConnecttimeout(1000);
-        lmeta.setTimeout(6);
+        lmeta.setTimeout(600);
         lmeta.setMaxFilterRatio(0);
 
         lmeta.setFieldStream(new String[]{"id","name","sorce"});

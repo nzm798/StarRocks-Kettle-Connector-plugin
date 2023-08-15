@@ -13,13 +13,8 @@ import org.pentaho.di.trans.step.*;
 import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.*;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.net.InetAddress;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.stream.Collectors;
@@ -32,6 +27,8 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
 
     private String logError;
 
+    private long expectDelayTime = 30000L;
+
     public StarRocksKettleConnector(StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta, Trans trans) {
         super(stepMeta, stepDataInterface, copyNr, transMeta, trans);
     }
@@ -42,8 +39,8 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
         data = (StarRocksKettleConnectorData) sdi;
 
         try {
-            Long a=new Long(1);
-            Object[] r=new Object[]{(Object) a,(Object) "Lili",(Object) 19.58};
+            Long a = new Long(1);
+            Object[] r = new Object[]{(Object) a, (Object) "Lili", (Object) 19.58};
             //Object[] r = getRow(); // Get row from input rowset & set row busy!
             if (r == null) { // no more input to be expected...
                 setOutputDone();
@@ -155,7 +152,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 case ValueMetaInterface.TYPE_INTEGER:
                     Long integerValue;
                     if (sourceMeta.isStorageBinaryString()) {
-                        integerValue=Long.parseLong(new String((byte[]) r,StandardCharsets.UTF_8));
+                        integerValue = Long.parseLong(new String((byte[]) r, StandardCharsets.UTF_8));
                     } else {
                         integerValue = sourceMeta.getInteger(r);
                     }
@@ -171,7 +168,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 case ValueMetaInterface.TYPE_NUMBER:
                     Double doubleValue;
                     if (sourceMeta.isStorageBinaryString()) {
-                        doubleValue=Double.parseDouble(new String((byte[]) r,StandardCharsets.UTF_8));
+                        doubleValue = Double.parseDouble(new String((byte[]) r, StandardCharsets.UTF_8));
                     } else {
                         doubleValue = sourceMeta.getNumber(r);
                     }
@@ -179,7 +176,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 case ValueMetaInterface.TYPE_BIGNUMBER:
                     BigDecimal decimalValue;
                     if (sourceMeta.isStorageBinaryString()) {
-                        decimalValue=new BigDecimal(new String((byte[]) r,StandardCharsets.UTF_8));
+                        decimalValue = new BigDecimal(new String((byte[]) r, StandardCharsets.UTF_8));
                     } else {
                         decimalValue = sourceMeta.getBigNumber(r);
                     }
@@ -187,7 +184,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 case ValueMetaInterface.TYPE_DATE:
                     Date dateValue = null;
                     if (sourceMeta.isStorageBinaryString()) {
-                        Long milliseconds = Long.parseLong(new String((byte[]) r,StandardCharsets.UTF_8));
+                        Long milliseconds = Long.parseLong(new String((byte[]) r, StandardCharsets.UTF_8));
                         dateValue = new Date(milliseconds);
                     } else {
                         dateValue = sourceMeta.getDate(r);
@@ -204,7 +201,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 case ValueMetaInterface.TYPE_TIMESTAMP:
                     java.sql.Timestamp timestampValue = null;
                     if (sourceMeta.isStorageBinaryString()) {
-                        Long milliseconds = Long.parseLong(new String((byte[]) r,StandardCharsets.UTF_8));
+                        Long milliseconds = Long.parseLong(new String((byte[]) r, StandardCharsets.UTF_8));
                         timestampValue = new java.sql.Timestamp(milliseconds);
                     } else {
                         timestampValue = (Timestamp) r;
@@ -226,7 +223,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                     String address;
                     if (sourceMeta.isStorageBinaryString()) {
 
-                        address = new String((byte[]) r,StandardCharsets.UTF_8);
+                        address = new String((byte[]) r, StandardCharsets.UTF_8);
                     } else {
                         address = (String) r;
                     }
@@ -351,7 +348,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 .scanningFrequency(meta.getScanningFrequency())
                 .connectTimeout(meta.getConnecttimeout())
                 .version(meta.getStarRocksQueryVisitor().getStarRocksVersion())
-                .expectDelayTime(100L)
+                .expectDelayTime(expectDelayTime)
                 .addHeader("timeout", String.valueOf(meta.getTimeout()))
                 .addHeader("max_filter_ratio", String.valueOf(meta.getMaxFilterRatio()));
 
