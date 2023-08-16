@@ -54,8 +54,8 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
     /**
      * Url of the stream load, if you don't specify the http/https prefix, the default http. like: `fe_ip1:http_port;http://fe_ip2:http_port;https://fe_nlb`.
      */
-    @Injection(name = "LOAD_URL")
-    private List<String> loadurl;
+    @Injection(name = "Http_URL")
+    private List<String> httpurl;
 
     /**
      * Url of the jdbc like: `jdbc:mysql://fe_ip1:query_port,fe_ip2:query_port...`.
@@ -96,6 +96,16 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
      */
     @Injection(name = "FORMAT")
     private String format;
+    /**
+     * The column separator in CSV format.
+     */
+    @Injection(name = "COLUMN_SEPARATOR")
+    private String column_separator;
+    /**
+     * The json path in JSON format.
+     */
+    @Injection(name = "jsonpaths")
+    private String jsonpaths;
 
     /**
      * The maximum size of data that can be loaded into StarRocks at a time.
@@ -154,17 +164,17 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
     private long scanningFrequency;
 
     /**
-     * @param loadurl Url of the stream load.
+     * @param httpurl Url of the stream load.
      */
-    public void setLoadurl(List<String> loadurl) {
-        this.loadurl = loadurl;
+    public void setHttpurl(List<String> httpurl) {
+        this.httpurl = httpurl;
     }
 
     /**
-     * @return Return the load url.
+     * @return Return the http url.
      */
-    public List<String> getLoadurl() {
-        return this.loadurl;
+    public List<String> getHttpurl() {
+        return this.httpurl;
     }
 
     /**
@@ -263,6 +273,34 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
      */
     public void setFormat(String format) {
         this.format = format;
+    }
+
+    /**
+     * @return The column separator in CSV format.
+     */
+    public String getColumnSeparator() {
+        return this.column_separator;
+    }
+
+    /**
+     * @param column_separator Column separator in CSV format
+     */
+    public void setColumnSeparator(String column_separator) {
+        this.column_separator = column_separator;
+    }
+
+    /**
+     * @return The Json path.
+     */
+    public String getJsonpaths() {
+        return this.jsonpaths;
+    }
+
+    /**
+     * @param jsonpaths The Json path.
+     */
+    public void setJsonpaths(String jsonpaths) {
+        this.jsonpaths = jsonpaths;
     }
 
     /**
@@ -433,7 +471,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
 
     public void setDefault() {
         fieldTable = null;
-        loadurl = null;
+        httpurl = null;
         jdbcurl = null;
         starRocksQueryVisitor = null;
         databasename = "";
@@ -441,6 +479,8 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         user = "root";
         password = "";
         format = "CSV";
+        column_separator = "\t";
+        jsonpaths = null;
         maxbytes = 90L * MEGA_BYTES_SCALE;
         max_filter_ratio = 0;
         connecttimeout = 1000;
@@ -475,8 +515,8 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
 
     private void readData(Node stepnode) throws KettleXMLException {
         try {
-            String loadurl1 = XMLHandler.getTagValue(stepnode, "loadurl");
-            loadurl = Arrays.asList(loadurl1.split(";"));
+            String httpurl1 = XMLHandler.getTagValue(stepnode, "httpurl");
+            httpurl = Arrays.asList(httpurl1.split(";"));
             jdbcurl = XMLHandler.getTagValue(stepnode, "jdbcurl");
             databasename = XMLHandler.getTagValue(stepnode, "databasename");
             tablename = XMLHandler.getTagValue(stepnode, "tablename");
@@ -486,6 +526,11 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
                 password = "";
             }
             format = XMLHandler.getTagValue(stepnode, "format");
+            column_separator = XMLHandler.getTagValue(stepnode, "columnseparator");
+            if (column_separator == null) {
+                column_separator = "\r";
+            }
+            jsonpaths = XMLHandler.getTagValue(stepnode, "jsonpaths");
             maxbytes = Long.valueOf(XMLHandler.getTagValue(stepnode, "maxbytes"));
             max_filter_ratio = Float.valueOf(XMLHandler.getTagValue(stepnode, "maxfilterratio"));
             connecttimeout = Integer.valueOf(XMLHandler.getTagValue(stepnode, "connecttimeout"));
@@ -523,17 +568,19 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
     public String getXML() {
         StringBuilder retval = new StringBuilder(300);
 
-        String loadurl1 = "";
-        if (loadurl != null && loadurl.size() != 0) {
-            loadurl1 = String.join(";", loadurl);
+        String httpurl1 = "";
+        if (httpurl != null && httpurl.size() != 0) {
+            httpurl1 = String.join(";", httpurl);
         }
-        retval.append("    ").append(XMLHandler.addTagValue("loadurl", loadurl1));
+        retval.append("    ").append(XMLHandler.addTagValue("httpurl", httpurl1));
         retval.append("    ").append(XMLHandler.addTagValue("jdbcurl", jdbcurl));
         retval.append("    ").append(XMLHandler.addTagValue("databasename", databasename));
         retval.append("    ").append(XMLHandler.addTagValue("tablename", tablename));
         retval.append("    ").append(XMLHandler.addTagValue("user", user));
         retval.append("    ").append(XMLHandler.addTagValue("password", password));
         retval.append("    ").append(XMLHandler.addTagValue("format", format));
+        retval.append("    ").append(XMLHandler.addTagValue("columnseparator", column_separator));
+        retval.append("    ").append(XMLHandler.addTagValue("jsonpaths", jsonpaths));
         retval.append("    ").append(XMLHandler.addTagValue("maxbytes", maxbytes));
         retval.append("    ").append(XMLHandler.addTagValue("maxfilterratio", max_filter_ratio));
         retval.append("    ").append(XMLHandler.addTagValue("connecttimeout", connecttimeout));
@@ -560,8 +607,8 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
 
     public void readRep(Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases) throws KettleException {
         try {
-            String loadurl1 = rep.getStepAttributeString(id_step, "loadurl");
-            loadurl = Arrays.asList(loadurl1.split(";"));
+            String httpurl1 = rep.getStepAttributeString(id_step, "httpurl");
+            httpurl = Arrays.asList(httpurl1.split(";"));
             jdbcurl = rep.getStepAttributeString(id_step, "jdbcurl");
             databasename = rep.getStepAttributeString(id_step, "databasename");
             tablename = rep.getStepAttributeString(id_step, "tablename");
@@ -571,6 +618,11 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
                 password = "";
             }
             format = rep.getStepAttributeString(id_step, "format");
+            column_separator = rep.getStepAttributeString(id_step, "columnseparator");
+            if (column_separator == null) {
+                column_separator = "\r";
+            }
+            jsonpaths = rep.getStepAttributeString(id_step, "jsonpaths");
             maxbytes = Long.valueOf(rep.getStepAttributeString(id_step, "maxbytes"));
             max_filter_ratio = Float.valueOf(rep.getStepAttributeString(id_step, "maxfilterratio"));
             connecttimeout = (int) rep.getStepAttributeInteger(id_step, "connecttimeout");
@@ -602,17 +654,19 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
 
     public void saveRep(Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step) throws KettleException {
         try {
-            String loadurl1 = "";
-            if (loadurl != null && loadurl.size() != 0) {
-                loadurl1 = String.join(";", loadurl);
+            String httpurl1 = "";
+            if (httpurl != null && httpurl.size() != 0) {
+                httpurl1 = String.join(";", httpurl);
             }
-            rep.saveStepAttribute(id_transformation, id_step, "loadurl", loadurl1);
+            rep.saveStepAttribute(id_transformation, id_step, "httpurl", httpurl1);
             rep.saveStepAttribute(id_transformation, id_step, "jdbcurl", jdbcurl);
             rep.saveStepAttribute(id_transformation, id_step, "databasename", databasename);
             rep.saveStepAttribute(id_transformation, id_step, "tablename", tablename);
             rep.saveStepAttribute(id_transformation, id_step, "user", user);
             rep.saveStepAttribute(id_transformation, id_step, "password", password);
             rep.saveStepAttribute(id_transformation, id_step, "format", format);
+            rep.saveStepAttribute(id_transformation, id_step, "columnseparator", column_separator);
+            rep.saveStepAttribute(id_transformation, id_step, "jsonpaths", jsonpaths);
             rep.saveStepAttribute(id_transformation, id_step, "maxbytes", maxbytes);
             rep.saveStepAttribute(id_transformation, id_step, "maxfilterratio", max_filter_ratio);
             rep.saveStepAttribute(id_transformation, id_step, "connecttimeout", connecttimeout);
@@ -793,6 +847,18 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
                     new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR, BaseMessages.getString(PKG,
                             "StarRocksKettleConnectorMeta.CheckResult.NoInputError"), stepMeta);
             remarks.add(cr);
+        }
+        // Check the Format
+        if (format == "CSV") {
+            if (column_separator == null || column_separator.length() == 0) {
+                cr = new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR, BaseMessages.getString(PKG, "StarRocksKettleConnectorMeta.CheckResult.NoSeparator"), stepMeta);
+                remarks.add(cr);
+            }
+        } else if (format == "JSON") {
+            if (jsonpaths == null || jsonpaths.length() == 0) {
+                cr = new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR, BaseMessages.getString(PKG, "StarRocksKettleConnectorMeta.CheckResult.NoJsonpaths"), stepMeta);
+                remarks.add(cr);
+            }
         }
 
 

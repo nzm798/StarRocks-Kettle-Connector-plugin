@@ -195,7 +195,6 @@ MySQL [kettle_test]> select * from test_table;
 ## 目前还未实现
 - 没有添加addHeaders(getSinkStreamLoadProperties())。未获取多余的StarRocks的参数配置。
 - 没有添加选定列插入的方法。
-- 未添加分隔符。CSV默认使用“，”，可以更改为tab
 - 如果想要实现表格中的一部分数据导入StarRocks中的一部分，中间要加上一个过滤步骤。
 - 对于数据的更新插入和删除功能还没有实现分别的删除和更新插入，只能单独实现。todo
 - 在kettle中现实的FieldTable名称应该和数据库的名称一样。
@@ -209,8 +208,6 @@ MySQL [kettle_test]> select * from test_table;
 - 获取不到ErrorUrl得不到Errorlog。
 - 脏数据异常处理,目前是出现脏数据会直接置为null,之后实现异常数据的时候使用puterror记录下来。
 - 看一下mysql的数据类型处理
-- json_path还未添加
-- 加一个分割符
-- 更改loadurl为httpurl
 - 写一个验证，验证数据映射是否对应。
 - kttle版本依赖
+- JDBC加载多个地址

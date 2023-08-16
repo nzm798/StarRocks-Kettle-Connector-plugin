@@ -16,10 +16,10 @@ public class StarRocksKettleConnectorMetaTest {
     @ClassRule
     public static RestorePDIEngineEnvironment env = new RestorePDIEngineEnvironment();
 
-    public class LoadUrlFieldLoadSaveValidator implements FieldLoadSaveValidator<List<String>> {
+    public class HttpUrlFieldLoadSaveValidator implements FieldLoadSaveValidator<List<String>> {
         private final int arraySize;
 
-        public LoadUrlFieldLoadSaveValidator(int arraySize) {
+        public HttpUrlFieldLoadSaveValidator(int arraySize) {
             this.arraySize = arraySize;
         }
 
@@ -59,18 +59,20 @@ public class StarRocksKettleConnectorMetaTest {
 
     @Test
     public void testRoundTrip() throws KettleException {
-        List<String> attributes = Arrays.asList("loadurl", "jdbcurl", "databasename", "tablename", "user", "password", "format", "maxbytes","scanningFrequency",
+        List<String> attributes = Arrays.asList("httpurl", "jdbcurl", "databasename", "tablename", "user", "password", "format","columnseparator","jsonpaths","maxbytes","scanningFrequency",
                 "max_filter_ratio", "connecttimeout", "timeout", "stream_name", "field_name", "partialupdate", "partialcolumns", "enableupsertdelete",
                 "upsertordelete");
 
         Map<String, String> getterMap = new HashMap<>();
-        getterMap.put("loadurl", "getLoadurl");
+        getterMap.put("httpurl", "getHttpurl");
         getterMap.put("jdbcurl", "getJdbcurl");
         getterMap.put("databasename", "getDatabasename");
         getterMap.put("tablename", "getTablename");
         getterMap.put("user", "getUser");
         getterMap.put("password", "getPassword");
         getterMap.put("format", "getFormat");
+        getterMap.put("jsonpaths","getJsonpaths");
+        getterMap.put("columnseparator","getColumnSeparator");
         getterMap.put("maxbytes", "getMaxbytes");
         getterMap.put("scanningFrequency","getScanningFrequency");
         getterMap.put("max_filter_ratio", "getMaxFilterRatio");
@@ -84,13 +86,15 @@ public class StarRocksKettleConnectorMetaTest {
         getterMap.put("upsertordelete", "getUpsertOrDelete");
 
         Map<String, String> setterMap = new HashMap<>();
-        setterMap.put("loadurl", "setLoadurl");
+        setterMap.put("httpurl", "setHttpurl");
         setterMap.put("jdbcurl", "setJdbcurl");
         setterMap.put("databasename", "setDatabasename");
         setterMap.put("tablename", "setTablename");
         setterMap.put("user", "setUser");
         setterMap.put("password", "setPassword");
         setterMap.put("format", "setFormat");
+        setterMap.put("columnseparator","setColumnSeparator");
+        setterMap.put("jsonpaths","setJsonpaths");
         setterMap.put("maxbytes", "setMaxbytes");
         setterMap.put("scanningFrequency","setScanningFrequency");
         setterMap.put("max_filter_ratio", "setMaxFilterRatio");
@@ -112,9 +116,9 @@ public class StarRocksKettleConnectorMetaTest {
                 new ArrayLoadSaveValidator<String>(new StringLoadSaveValidator(), 25);
 
 
-        FieldLoadSaveValidator<List<String>> loadUrlLoadSaveValidator = new LoadUrlFieldLoadSaveValidator(5);
+        FieldLoadSaveValidator<List<String>> httpUrlFieldLoadSaveValidator = new HttpUrlFieldLoadSaveValidator(5);
         FieldLoadSaveValidator<Float> floatFieldLoadSaveValidator = new FloatFieldLoadSaveValidator();
-        fieldLoadSaveValidatorAttributeMap.put("loadurl", loadUrlLoadSaveValidator);
+        fieldLoadSaveValidatorAttributeMap.put("httpurl", httpUrlFieldLoadSaveValidator);
         fieldLoadSaveValidatorAttributeMap.put("max_filter_ratio", floatFieldLoadSaveValidator);
         fieldLoadSaveValidatorAttributeMap.put("stream_name", stringArrayLoadSaveValidator);
         fieldLoadSaveValidatorAttributeMap.put("field_name", stringArrayLoadSaveValidator);

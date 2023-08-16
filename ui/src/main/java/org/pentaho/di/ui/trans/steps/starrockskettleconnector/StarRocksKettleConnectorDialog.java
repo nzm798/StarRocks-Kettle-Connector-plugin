@@ -45,9 +45,9 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
 
     private static Class<?> PKG = StarRocksKettleConnectorDialog.class;
 
-    private Label wlLoadUrl;
-    private TextVar wLoadUrl;
-    private FormData fdlLoadUrl, fdLoadUrl;
+    private Label wlHttpurl;
+    private TextVar wHttpurl;
+    private FormData fdlHttpurl, fdHttpurl;
 
     private Label wlJdbcUrl;
     private TextVar wJdbcUrl;
@@ -72,6 +72,15 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
     private Label wlFormat;
     private CCombo wFormat;
     private FormData fdlFormat, fdFormat;
+
+    private Label wlColumnSeparator;
+    private Button wbColumnSeparator;
+    private TextVar wColumnSeparator;
+    private FormData fdlColumnSeparator,fdColumnSeparator;
+
+    private Label wlJsonPaths;
+    private TextVar wJsonPaths;
+    private FormData fdlJsonPaths,fdJsonPaths;
 
     private Label wlMaxBytes;
     private TextVar wMaxBytes;
@@ -183,25 +192,25 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         fdStepname.right = new FormAttachment(100, 0);
         wStepname.setLayoutData(fdStepname);
 
-        // Load Url line...
-        wlLoadUrl = new Label(shell, SWT.RIGHT);
-        wlLoadUrl.setText(BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.LoadUrl.Label"));
-        props.setLook(wlLoadUrl);
-        fdlLoadUrl = new FormData();
-        fdlLoadUrl.left = new FormAttachment(0, 0);
-        fdlLoadUrl.right = new FormAttachment(middle, -margin);
-        fdlLoadUrl.top = new FormAttachment(wStepname, margin * 2);
-        wlLoadUrl.setLayoutData(fdlLoadUrl);
+        // Http Url line...
+        wlHttpurl = new Label(shell, SWT.RIGHT);
+        wlHttpurl.setText(BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.HttpUrl.Label"));
+        props.setLook(wlHttpurl);
+        fdlHttpurl = new FormData();
+        fdlHttpurl.left = new FormAttachment(0, 0);
+        fdlHttpurl.right = new FormAttachment(middle, -margin);
+        fdlHttpurl.top = new FormAttachment(wStepname, margin * 2);
+        wlHttpurl.setLayoutData(fdlHttpurl);
 
-        wLoadUrl = new TextVar(transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
-        props.setLook(wLoadUrl);
-        wLoadUrl.addModifyListener(lsMod);
-        wLoadUrl.addFocusListener(lsFocusLost);
-        fdLoadUrl = new FormData();
-        fdLoadUrl.left = new FormAttachment(middle, 0);
-        fdLoadUrl.right = new FormAttachment(100, 0);
-        fdLoadUrl.top = new FormAttachment(wStepname, margin * 2);
-        wLoadUrl.setLayoutData(fdLoadUrl);
+        wHttpurl = new TextVar(transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
+        props.setLook(wHttpurl);
+        wHttpurl.addModifyListener(lsMod);
+        wHttpurl.addFocusListener(lsFocusLost);
+        fdHttpurl = new FormData();
+        fdHttpurl.left = new FormAttachment(middle, 0);
+        fdHttpurl.right = new FormAttachment(100, 0);
+        fdHttpurl.top = new FormAttachment(wStepname, margin * 2);
+        wHttpurl.setLayoutData(fdHttpurl);
 
         // JDBC Url ...
         wlJdbcUrl = new Label(shell, SWT.RIGHT);
@@ -210,7 +219,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         fdlJdbcUrl = new FormData();
         fdlJdbcUrl.left = new FormAttachment(0, 0);
         fdlJdbcUrl.right = new FormAttachment(middle, -margin);
-        fdlJdbcUrl.top = new FormAttachment(wLoadUrl, margin * 2);
+        fdlJdbcUrl.top = new FormAttachment(wHttpurl, margin * 2);
         wlJdbcUrl.setLayoutData(fdlJdbcUrl);
 
         wJdbcUrl = new TextVar(transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
@@ -220,7 +229,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         fdJdbcUrl = new FormData();
         fdJdbcUrl.left = new FormAttachment(middle, 0);
         fdJdbcUrl.right = new FormAttachment(100, 0);
-        fdJdbcUrl.top = new FormAttachment(wLoadUrl, margin * 2);
+        fdJdbcUrl.top = new FormAttachment(wHttpurl, margin * 2);
         wJdbcUrl.setLayoutData(fdJdbcUrl);
 
         // DataBase Name line...
@@ -325,6 +334,61 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         fdFormat.right = new FormAttachment(100, 0);
         wFormat.setLayoutData(fdFormat);
 
+        // Column Separator line...
+        wlColumnSeparator = new Label( shell, SWT.RIGHT );
+        wlColumnSeparator.setText( BaseMessages.getString( PKG, "StarRocksKettleConnectorDialog.ColumnSeparator.Label" ) );
+        props.setLook( wlColumnSeparator );
+        fdlColumnSeparator = new FormData();
+        fdlColumnSeparator.left = new FormAttachment( 0, 0 );
+        fdlColumnSeparator.right = new FormAttachment( middle, -margin );
+        fdlColumnSeparator.top = new FormAttachment( wFormat, margin );
+        wlColumnSeparator.setLayoutData( fdlColumnSeparator );
+
+        wbColumnSeparator = new Button( shell, SWT.PUSH | SWT.CENTER );
+        props.setLook( wbColumnSeparator );
+        wbColumnSeparator.setText( BaseMessages.getString( PKG, "StarRocksKettleConnectorDialog.ColumnSeparator.Button" ) );
+        FormData fdbColumnSeparator = new FormData();
+        fdbColumnSeparator.top = new FormAttachment( wFormat, margin );
+        fdbColumnSeparator.right = new FormAttachment( 100, 0 );
+        wbColumnSeparator.setLayoutData( fdbColumnSeparator );
+
+        wColumnSeparator = new TextVar( transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+        props.setLook( wColumnSeparator );
+        wColumnSeparator.addModifyListener( lsMod );
+        fdColumnSeparator = new FormData();
+        fdColumnSeparator.left = new FormAttachment( middle, 0 );
+        fdColumnSeparator.top = new FormAttachment( wFormat, margin );
+        fdColumnSeparator.right = new FormAttachment( wbColumnSeparator, -margin );
+        wColumnSeparator.setLayoutData( fdColumnSeparator );
+        // Allow the insertion of tabs as separator...
+        wbColumnSeparator.addSelectionListener( new SelectionAdapter() {
+            public void widgetSelected( SelectionEvent se ) {
+                Text t = wColumnSeparator.getTextWidget();
+                if ( t != null ) {
+                    t.insert( "\t" );
+                }
+            }
+        } );
+
+        // Json Paths line..
+        wlJsonPaths=new Label(shell,SWT.RIGHT);
+        wlJsonPaths.setText(BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.JsonPaths.Label"));
+        props.setLook(wlJsonPaths);
+        fdlJsonPaths = new FormData();
+        fdlJsonPaths.left = new FormAttachment(0, 0);
+        fdlJsonPaths.right = new FormAttachment(middle, -margin);
+        fdlJsonPaths.top = new FormAttachment(wColumnSeparator, margin * 2);
+        wlJsonPaths.setLayoutData(fdlJsonPaths);
+
+        wJsonPaths = new TextVar(transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
+        props.setLook(wJsonPaths);
+        wJsonPaths.addModifyListener(lsMod);
+        fdJsonPaths = new FormData();
+        fdJsonPaths.left = new FormAttachment(middle, 0);
+        fdJsonPaths.top = new FormAttachment(wColumnSeparator, margin * 2);
+        fdJsonPaths.right = new FormAttachment(100, 0);
+        wJsonPaths.setLayoutData(fdJsonPaths);
+
         // Max Bytes line...
         wlMaxBytes = new Label(shell, SWT.RIGHT);
         wlMaxBytes.setText(BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.MaxBytes.Label"));
@@ -332,7 +396,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         fdlMaxBytes = new FormData();
         fdlMaxBytes.left = new FormAttachment(0, 0);
         fdlMaxBytes.right = new FormAttachment(middle, -margin);
-        fdlMaxBytes.top = new FormAttachment(wFormat, margin * 2);
+        fdlMaxBytes.top = new FormAttachment(wJsonPaths, margin * 2);
         wlMaxBytes.setLayoutData(fdlMaxBytes);
 
         wMaxBytes = new TextVar(transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
@@ -340,7 +404,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         wMaxBytes.addModifyListener(lsMod);
         fdMaxBytes = new FormData();
         fdMaxBytes.left = new FormAttachment(middle, 0);
-        fdMaxBytes.top = new FormAttachment(wFormat, margin * 2);
+        fdMaxBytes.top = new FormAttachment(wJsonPaths, margin * 2);
         fdMaxBytes.right = new FormAttachment(100, 0);
         wMaxBytes.setLayoutData(fdMaxBytes);
 
@@ -625,13 +689,15 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
             }
         };
 
-        wLoadUrl.addSelectionListener(lsDef);
+        wHttpurl.addSelectionListener(lsDef);
         wJdbcUrl.addSelectionListener(lsDef);
         wDatabaseName.addSelectionListener(lsDef);
         wTableName.addSelectionListener(lsDef);
         wUser.addSelectionListener(lsDef);
         wPassword.addSelectionListener(lsDef);
         wFormat.addSelectionListener(lsDef);
+        wColumnSeparator.addSelectionListener(lsDef);
+        wJsonPaths.addSelectionListener(lsDef);
         wMaxBytes.addSelectionListener(lsDef);
         wScanningFrequency.addSelectionListener(lsDef);
         wMaxFilterRatio.addSelectionListener(lsDef);
@@ -795,6 +861,8 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
             logDebug(BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.Log.GettingKeyInfo"));
         }
         wFormat.setText(Const.NVL(input.getFormat(), ""));
+        wColumnSeparator.setText(Const.NVL((input.getColumnSeparator()),"\t"));
+        wJsonPaths.setText(Const.NVL(input.getJsonpaths(),""));
         wMaxBytes.setText(Const.NVL(String.valueOf(input.getMaxbytes()), ""));
         wScanningFrequency.setText(Const.NVL(String.valueOf(input.getScanningFrequency()),""));
         wMaxFilterRatio.setText(Const.NVL(String.valueOf(input.getMaxFilterRatio()), ""));
@@ -820,8 +888,8 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
             }
         }
 
-        if (input.getLoadurl() != null) {
-            wLoadUrl.setText(String.join(";", input.getLoadurl()));
+        if (input.getHttpurl() != null) {
+            wHttpurl.setText(String.join(";", input.getHttpurl()));
         }
         if (input.getJdbcurl() != null) {
             wJdbcUrl.setText(input.getJdbcurl());
@@ -924,6 +992,8 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         inf.allocate(nrfields);
 
         inf.setFormat(wFormat.getText());
+        inf.setColumnSeparator(wColumnSeparator.getText());
+        inf.setJsonpaths(wJsonPaths.getText());
         inf.setMaxbytes(Long.valueOf(wMaxBytes.getText()));
         inf.setScanningFrequency(Long.valueOf(wScanningFrequency.getText()));
         inf.setMaxFilterRatio(Float.valueOf(wMaxFilterRatio.getText()));
@@ -944,7 +1014,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
             inf.getFieldStream()[i] = item.getText(2);
         }
 
-        inf.setLoadurl(Arrays.asList(wLoadUrl.getText().split(";")));
+        inf.setHttpurl(Arrays.asList(wHttpurl.getText().split(";")));
         inf.setJdbcurl(wJdbcUrl.getText());
         inf.setDatabasename(wDatabaseName.getText());
         inf.setTablename(wTableName.getText());

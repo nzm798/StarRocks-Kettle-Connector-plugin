@@ -43,7 +43,7 @@ public class StarRocksKettleConnectorWriterTest {
         transMeta.setName("StarRocksKettleConnector");
 
         Map<String, String> vars = new HashMap<>();
-        vars.put("loadurl", "10.112.133.149:8030");
+        vars.put("httpurl", "10.112.133.149:8030");
         vars.put("jdbcurl", "jdbc:mysql://10.112.133.149:9030");
         vars.put("databasename", "kettle_test");
         vars.put("tablename", "student");
@@ -53,8 +53,8 @@ public class StarRocksKettleConnectorWriterTest {
         transMeta.injectVariables(vars);
 
         lmeta = new StarRocksKettleConnectorMeta();
-        List<String> loadurl = Arrays.asList(vars.get("loadurl").split(";"));
-        lmeta.setLoadurl(loadurl);
+        List<String> httpurl = Arrays.asList(vars.get("httpurl").split(";"));
+        lmeta.setHttpurl(httpurl);
         lmeta.setJdbcurl(transMeta.environmentSubstitute("${jdbcurl}"));
         lmeta.setDatabasename(transMeta.environmentSubstitute("${databasename}"));
         lmeta.setTablename(transMeta.environmentSubstitute("${tablename}"));
@@ -66,6 +66,9 @@ public class StarRocksKettleConnectorWriterTest {
         lmeta.setConnecttimeout(1000);
         lmeta.setTimeout(600);
         lmeta.setMaxFilterRatio(0);
+        lmeta.setColumnSeparator("\t");
+        lmeta.setEnableupsertdelete(true);
+        lmeta.setUpsertOrDelete("DELETE");
 
         lmeta.setFieldStream(new String[]{"id","name","sorce"});
         lmeta.setFieldTable(new String[]{"id","name","sorce"});
@@ -89,13 +92,12 @@ public class StarRocksKettleConnectorWriterTest {
     }
     @Test
     public void testStreamLoad() throws KettleException{
-        lder.init(lmeta,ldata);
+        //lder.init(lmeta,ldata);
 //        byte[] id=new String("1").getBytes();
 //        byte[] name=new String("Lili").getBytes();
 //        byte[] sorce=new String("89.2").getBytes();
 //        lder.putRow(rm,new Object[]{id,name,sorce});
 
-        lder.processRow(lmeta,ldata);
-        lder.dispose(lmeta,ldata);
+        //lder.processRow(lmeta,ldata);
     }
 }

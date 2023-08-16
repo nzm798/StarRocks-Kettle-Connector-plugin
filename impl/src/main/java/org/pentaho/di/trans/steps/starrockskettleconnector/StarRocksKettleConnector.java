@@ -27,7 +27,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
 
     private String logError;
 
-    private long expectDelayTime = 100L;
+    private long expectDelayTime = 30000L;
 
     public StarRocksKettleConnector(StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta, Trans trans) {
         super(stepMeta, stepDataInterface, copyNr, transMeta, trans);
@@ -39,9 +39,9 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
         data = (StarRocksKettleConnectorData) sdi;
 
         try {
-            Long a = new Long(1);
-            Object[] r = new Object[]{(Object) a, (Object) "Lili", (Object) 19.58};
-            //Object[] r = getRow(); // Get row from input rowset & set row busy!
+            // Long a = new Long(1);
+            // Object[] r = new Object[]{(Object) a, (Object) "Lili", (Object) 19.58};
+            Object[] r = getRow(); // Get row from input rowset & set row busy!
             if (r == null) { // no more input to be expected...
                 setOutputDone();
                 closeOutput();
@@ -282,7 +282,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
     public StarRocksISerializer getSerializer(StarRocksKettleConnectorMeta meta) {
         StarRocksISerializer serializer;
         if (meta.getFormat().equals("CSV")) {
-            serializer = new StarRocksCsvSerializer("\t"); // 现在使用默认的，作为列分割符，//TODO：加入分割符
+            serializer = new StarRocksCsvSerializer(meta.getColumnSeparator()); // 现在使用默认的，作为列分割符，//TODO：加入分割符
         } else if (meta.getFormat().equals("JSON")) {
             serializer = new StarRocksJsonSerializer(meta.getFieldTable());
         } else {
@@ -339,7 +339,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
 
         StreamLoadProperties.Builder builder = StreamLoadProperties.builder()
                 .labelPrefix("StarRocks-Kettle")
-                .loadUrls(meta.getLoadurl().toArray(new String[0]))
+                .loadUrls(meta.getHttpurl().toArray(new String[0]))
                 .jdbcUrl(meta.getJdbcurl())
                 .defaultTableProperties(defaultTablePropertiesBuilder.build())
                 .username(meta.getUser())
@@ -352,6 +352,11 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 .addHeader("timeout", String.valueOf(meta.getTimeout()))
                 .addHeader("max_filter_ratio", String.valueOf(meta.getMaxFilterRatio()));
 
+        if (meta.getFormat() == "CSV") {
+            builder.addHeader("column_separator", meta.getColumnSeparator());
+        } else if (meta.getFormat() == "JSON") {
+            builder.addHeader("jsonpaths", meta.getJsonpaths());
+        }
 
         return builder.build();
 

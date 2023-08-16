@@ -5,7 +5,7 @@ import org.pentaho.di.trans.step.StepMetaInterface;
 import java.util.List;
 
 public interface StarRocksMeta extends StepMetaInterface {
-    List<String> getLoadurl();
+    List<String> getHttpurl();
 
     String getJdbcurl();
 
@@ -18,6 +18,10 @@ public interface StarRocksMeta extends StepMetaInterface {
     String getPassword();
 
     String getFormat();
+
+    String getColumnSeparator();
+
+    String getJsonpaths();
 
     long getMaxbytes();
 

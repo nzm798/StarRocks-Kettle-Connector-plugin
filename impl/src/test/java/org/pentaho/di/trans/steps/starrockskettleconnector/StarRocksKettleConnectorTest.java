@@ -53,7 +53,7 @@ public class StarRocksKettleConnectorTest {
         transMeta.setName("StarRocksKettleConnector");
 
         Map<String, String> vars = new HashMap<>();
-        vars.put("loadurl", "10.112.133.149:8030;10.112.143.215:8030;10.112.156.187:8030");
+        vars.put("httpurl", "10.112.133.149:8030;10.112.143.215:8030;10.112.156.187:8030");
         vars.put("jdbcurl", "jdbc:mysql://10.112.133.149:9030");
         vars.put("databasename", "somedatabase");
         vars.put("tablename", "sometable");
@@ -63,8 +63,8 @@ public class StarRocksKettleConnectorTest {
         transMeta.injectVariables(vars);
 
         lmeta = new StarRocksKettleConnectorMeta();
-        List<String> loadurl = Arrays.asList(vars.get("loadurl").split(";"));
-        lmeta.setLoadurl(loadurl);
+        List<String> httpurl = Arrays.asList(vars.get("httpurl").split(";"));
+        lmeta.setHttpurl(httpurl);
         lmeta.setJdbcurl(transMeta.environmentSubstitute("${jdbcurl}"));
         lmeta.setDatabasename(transMeta.environmentSubstitute("${databasename}"));
         lmeta.setTablename(transMeta.environmentSubstitute("${tablename}"));
@@ -76,6 +76,7 @@ public class StarRocksKettleConnectorTest {
         lmeta.setConnecttimeout(1000);
         lmeta.setTimeout(600);
         lmeta.setMaxFilterRatio(0);
+        lmeta.setColumnSeparator("\t");
 
         ldata = new StarRocksKettleConnectorData();
         PluginRegistry plugReg = PluginRegistry.getInstance();
@@ -101,7 +102,7 @@ public class StarRocksKettleConnectorTest {
         StarRocksKettleConnectorMeta newMeta = new StarRocksKettleConnectorMeta();
         newMeta.loadXML(stepNode, null, metaStore);
 
-        assertEquals(lmeta.getLoadurl(), newMeta.getLoadurl());
+        assertEquals(lmeta.getHttpurl(), newMeta.getHttpurl());
         assertEquals(lmeta.getJdbcurl(), newMeta.getJdbcurl());
         assertEquals(lmeta.getDatabasename(), newMeta.getDatabasename());
         assertEquals(lmeta.getTablename(), newMeta.getTablename());
@@ -112,6 +113,8 @@ public class StarRocksKettleConnectorTest {
         assertEquals(lmeta.getTimeout(), newMeta.getTimeout());
         assertEquals(lmeta.getConnecttimeout(), newMeta.getConnecttimeout());
         assertEquals(lmeta.getMaxFilterRatio(), newMeta.getMaxFilterRatio(), 0.0001);
+        assertEquals(lmeta.getColumnSeparator(),newMeta.getColumnSeparator());
+        assertEquals(lmeta.getJsonpaths(),newMeta.getJsonpaths());
     }
 
     @Test
