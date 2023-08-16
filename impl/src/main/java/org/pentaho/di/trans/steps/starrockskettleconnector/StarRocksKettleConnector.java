@@ -5,6 +5,7 @@ import com.starrocks.data.load.stream.StreamLoadDataFormat;
 import com.starrocks.data.load.stream.properties.StreamLoadProperties;
 import com.starrocks.data.load.stream.properties.StreamLoadTableProperties;
 import com.starrocks.data.load.stream.v2.StreamLoadManagerV2;
+import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
@@ -39,8 +40,9 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
         data = (StarRocksKettleConnectorData) sdi;
 
         try {
-            // Long a = new Long(1);
-            // Object[] r = new Object[]{(Object) a, (Object) "Lili", (Object) 19.58};
+            // Long a = new Long(101);
+            // Long b = new Long(80);
+            // Object[] r = new Object[]{(Object) a, (Object) "Lily", (Object) b};
             Object[] r = getRow(); // Get row from input rowset & set row busy!
             if (r == null) { // no more input to be expected...
                 setOutputDone();
@@ -95,7 +97,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
     }
 
     // Data type conversion.
-    public Object[] transform(Object[] r, boolean supportUpsertDelete) {
+    public Object[] transform(Object[] r, boolean supportUpsertDelete) throws KettleException {
         Object[] values = new Object[data.keynrs.length + (supportUpsertDelete ? 1 : 0)];
         for (int i = 0; i < data.keynrs.length; i++) {
             ValueMetaInterface sourceMeta = getInputRowMeta().getValueMeta(data.keynrs[i]);
@@ -116,7 +118,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
      * @param r
      * @return
      */
-    public Object typeConvertion(ValueMetaInterface sourceMeta, StarRocksDataType type, Object r) {
+    public Object typeConvertion(ValueMetaInterface sourceMeta, StarRocksDataType type, Object r) throws KettleException {
         if (r == null) {
             return null;
         }
@@ -234,7 +236,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
             }
         } catch (Exception e) {
             logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.FailConvertType") + e.getMessage());
-            return null;
+            throw new KettleException(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.FailConvertType") + e.getMessage());
         }
     }
 

@@ -9,6 +9,7 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.StepPluginType;
 import org.pentaho.di.core.row.RowMeta;
+import org.pentaho.di.core.row.value.ValueMetaBigNumber;
 import org.pentaho.di.core.row.value.ValueMetaInteger;
 import org.pentaho.di.core.row.value.ValueMetaNumber;
 import org.pentaho.di.core.row.value.ValueMetaString;
@@ -46,7 +47,7 @@ public class StarRocksKettleConnectorWriterTest {
         vars.put("httpurl", "10.112.133.149:8030");
         vars.put("jdbcurl", "jdbc:mysql://10.112.133.149:9030");
         vars.put("databasename", "kettle_test");
-        vars.put("tablename", "student");
+        vars.put("tablename", "table1");
         vars.put("user", "root");
         vars.put("password", "");
         vars.put("format", "CSV");
@@ -67,14 +68,12 @@ public class StarRocksKettleConnectorWriterTest {
         lmeta.setTimeout(600);
         lmeta.setMaxFilterRatio(0);
         lmeta.setColumnSeparator("\t");
-        lmeta.setEnableupsertdelete(true);
-        lmeta.setUpsertOrDelete("DELETE");
 
-        lmeta.setFieldStream(new String[]{"id","name","sorce"});
-        lmeta.setFieldTable(new String[]{"id","name","sorce"});
+        lmeta.setFieldStream(new String[]{"id","name","score"});
+        lmeta.setFieldTable(new String[]{"id","name","score"});
         ValueMetaInteger vi=new ValueMetaInteger("id");
         ValueMetaString vs=new ValueMetaString("name");
-        ValueMetaNumber vn=new ValueMetaNumber("sorce");
+        ValueMetaInteger vn=new ValueMetaInteger("score");
         rm.addValueMeta(vi);
         rm.addValueMeta(vs);
         rm.addValueMeta(vn);
