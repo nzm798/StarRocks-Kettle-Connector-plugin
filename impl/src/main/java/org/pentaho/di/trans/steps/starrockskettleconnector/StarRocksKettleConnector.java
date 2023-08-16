@@ -27,7 +27,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
 
     private String logError;
 
-    private long expectDelayTime = 30000L;
+    private long expectDelayTime = 100L;
 
     public StarRocksKettleConnector(StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta, Trans trans) {
         super(stepMeta, stepDataInterface, copyNr, transMeta, trans);
@@ -282,7 +282,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
     public StarRocksISerializer getSerializer(StarRocksKettleConnectorMeta meta) {
         StarRocksISerializer serializer;
         if (meta.getFormat().equals("CSV")) {
-            serializer = new StarRocksCsvSerializer(","); // 现在使用默认的，作为列分割符
+            serializer = new StarRocksCsvSerializer("\t"); // 现在使用默认的，作为列分割符，//TODO：加入分割符
         } else if (meta.getFormat().equals("JSON")) {
             serializer = new StarRocksJsonSerializer(meta.getFieldTable());
         } else {
@@ -351,6 +351,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 .expectDelayTime(expectDelayTime)
                 .addHeader("timeout", String.valueOf(meta.getTimeout()))
                 .addHeader("max_filter_ratio", String.valueOf(meta.getMaxFilterRatio()));
+
 
         return builder.build();
 

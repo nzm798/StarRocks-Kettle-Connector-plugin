@@ -61,7 +61,7 @@ public class StarRocksKettleConnectorWriterTest {
         lmeta.setUser(transMeta.environmentSubstitute("${user}"));
         lmeta.setPassword(transMeta.environmentSubstitute("${password}"));
         lmeta.setFormat(transMeta.environmentSubstitute("${format}"));
-        lmeta.setMaxbytes(12);
+        lmeta.setMaxbytes(6);
         lmeta.setScanningFrequency(50L);
         lmeta.setConnecttimeout(1000);
         lmeta.setTimeout(600);
@@ -96,5 +96,6 @@ public class StarRocksKettleConnectorWriterTest {
 //        lder.putRow(rm,new Object[]{id,name,sorce});
 
         lder.processRow(lmeta,ldata);
+        lder.dispose(lmeta,ldata);
     }
 }

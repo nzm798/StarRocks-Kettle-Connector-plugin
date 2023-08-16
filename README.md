@@ -207,7 +207,10 @@ MySQL [kettle_test]> select * from test_table;
 
 
 - 获取不到ErrorUrl得不到Errorlog。
-- 脏数据异常处理,目前是出现脏数据会直接置为null,之后实现异常数据的时候使用puerror记录下来。
-- 最大的行数目前没有用
+- 脏数据异常处理,目前是出现脏数据会直接置为null,之后实现异常数据的时候使用puterror记录下来。
 - 看一下mysql的数据类型处理
-- 实现数据导入的最大容错率max_filter_ratio
+- json_path还未添加
+- 加一个分割符
+- 更改loadurl为httpurl
+- 写一个验证，验证数据映射是否对应。
+- kttle版本依赖
