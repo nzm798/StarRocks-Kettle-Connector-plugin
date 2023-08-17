@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class StarRocksKettleConnector extends BaseStep implements StepInterface {
@@ -25,8 +26,6 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
     private static Class<?> PKG = StarRocksKettleConnectorMeta.class;
     private StarRocksKettleConnectorMeta meta;
     private StarRocksKettleConnectorData data;
-
-    private String logError;
 
     private long expectDelayTime = 30000L;
 
@@ -218,8 +217,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
 //                    }
                     return timestampValue;
                 case ValueMetaInterface.TYPE_BINARY:
-                    logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.UnSupportBinary") + r.toString());
-                    return null;
+                    throw new KettleException((BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.UnSupportBinary")+r.toString()));
 
                 case ValueMetaInterface.TYPE_INET:
                     String address;
@@ -231,11 +229,9 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                     }
                     return address;
                 default:
-                    logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.UnknowType") + ValueMetaInterface.typeCodes[sourceMeta.getType()]);
-                    return null;
+                    throw new KettleException(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.UnknowType") + ValueMetaInterface.getTypeDescription(sourceMeta.getType()));
             }
         } catch (Exception e) {
-            logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.FailConvertType") + e.getMessage());
             throw new KettleException(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.FailConvertType") + e.getMessage());
         }
     }

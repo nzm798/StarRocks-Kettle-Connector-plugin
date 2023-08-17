@@ -33,6 +33,7 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -49,7 +50,6 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
 
     private static final long KILO_BYTES_SCALE = 1024L;
     private static final long MEGA_BYTES_SCALE = KILO_BYTES_SCALE * KILO_BYTES_SCALE;
-    private static final long GIGA_BYTES_SCALE = MEGA_BYTES_SCALE * KILO_BYTES_SCALE;
 
     /**
      * Url of the stream load, if you don't specify the http/https prefix, the default http. like: `fe_ip1:http_port;http://fe_ip2:http_port;https://fe_nlb`.
@@ -825,6 +825,30 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
                     cr = new CheckResult(CheckResultInterface.TYPE_RESULT_OK, BaseMessages.getString(PKG, "StarRocksKettleConnectorMeta.CheckResult.NoNeedPartialUpdate"), stepMeta);
                     remarks.add(cr);
                 }
+
+                // Check the Kettle-StarRocks Type Mapping.
+                error_found = false;
+                first = true;
+                error_message = "";
+                for (int i = 0; i < fieldStream.length; i++) {
+                    ValueMetaInterface v = prev.searchValueMeta(fieldStream[i]);
+                    StarRocksDataType type = fielsMap.get(fieldTable[i]);
+                    if (!isCorrectTypeMapping(v.getType(), type)) {
+                        if (first) {
+                            first = false;
+                            error_message += BaseMessages.getString(PKG, "StarRocksKettleConnectorMeta.CheckResult.ErrorTypeMapping") + Const.CR;
+                        }
+                        error_found = true;
+                        error_message += "\t\t" + ValueMetaInterface.getTypeDescription(v.getType()) + "---->" + type.toString() + Const.CR;
+                    }
+                }
+                if (error_found) {
+                    cr = new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR, error_message, stepMeta);
+                }else {
+                    cr=new CheckResult(CheckResultInterface.TYPE_RESULT_OK,BaseMessages.getString(PKG,"StarRocksKettleConnectorMeta.CheckResult.CorrectTypeMapping"),stepMeta);
+                }
+                remarks.add(cr);
+
             } catch (Exception e) {
                 error_message = BaseMessages.getString(PKG, "StarRocksKettleConnectorMeta.CheckResult.DatabaseErrorOccurred") + e.getMessage();
                 cr = new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR, error_message, stepMeta);
@@ -861,7 +885,6 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             }
         }
 
-
     }
 
     public StepInterface getStep(StepMeta stepMeta, StepDataInterface stepDataInterface, int cnr, TransMeta transMeta,
@@ -887,6 +910,32 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         return version == null || version.length() > 0 && !version.trim().startsWith("1.");
     }
 
+    private boolean isCorrectTypeMapping(int kettleType, StarRocksDataType starrocksType) {
+        if (starrocksType == null) {
+            return false;
+        }
+        switch (kettleType) {
+            case ValueMetaInterface.TYPE_NUMBER:
+            case ValueMetaInterface.TYPE_STRING:
+            case ValueMetaInterface.TYPE_DATE:
+            case ValueMetaInterface.TYPE_BOOLEAN:
+            case ValueMetaInterface.TYPE_INTEGER:
+            case ValueMetaInterface.TYPE_BIGNUMBER:
+            case ValueMetaInterface.TYPE_TIMESTAMP:
+            case ValueMetaInterface.TYPE_INET:
+                if (typeMapping.get(kettleType).contains(starrocksType)) {
+                    return true;
+                }
+            case ValueMetaInterface.TYPE_BINARY:
+                logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.UnSupportBinary"));
+            case ValueMetaInterface.TYPE_SERIALIZABLE:
+                logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.UnSupportSerializable"));
+            default:
+                logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.UnknowType"));
+        }
+        return false;
+    }
+
     /**
      * If we use injection we can have different arrays lengths.
      * We need synchronize them for consistency behavior with UI
@@ -901,4 +950,17 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         fieldStream = rtnStrings[0];
 
     }
+
+    private Map<Integer, List<StarRocksDataType>> typeMapping = new HashMap<Integer, List<StarRocksDataType>>() {
+        {
+            put(ValueMetaInterface.TYPE_NUMBER, Arrays.asList(StarRocksDataType.DOUBLE, StarRocksDataType.FLOAT));
+            put(ValueMetaInterface.TYPE_STRING, Arrays.asList(StarRocksDataType.VARCHAR, StarRocksDataType.CHAR, StarRocksDataType.STRING, StarRocksDataType.JSON));
+            put(ValueMetaInterface.TYPE_DATE, Arrays.asList(StarRocksDataType.DATE, StarRocksDataType.DATETIME));
+            put(ValueMetaInterface.TYPE_BOOLEAN, Arrays.asList(StarRocksDataType.BOOLEAN));
+            put(ValueMetaInterface.TYPE_INTEGER, Arrays.asList(StarRocksDataType.TINYINT, StarRocksDataType.SMALLINT, StarRocksDataType.INT, StarRocksDataType.BIGINT));
+            put(ValueMetaInterface.TYPE_BIGNUMBER, Arrays.asList(StarRocksDataType.LARGEINT, StarRocksDataType.DECIMAL));
+            put(ValueMetaInterface.TYPE_TIMESTAMP, Arrays.asList(StarRocksDataType.DATETIME, StarRocksDataType.DATE));
+            put(ValueMetaInterface.TYPE_INET, Arrays.asList(StarRocksDataType.STRING));
+        }
+    };
 }

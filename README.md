@@ -114,18 +114,18 @@ StarRocks Kettle Connector实现了Kettle的一个插件，它用于在StarRocks
 
 ### StarRocks数据类型以及与Kettle对应
 
-| Kettle           | StarRocks                                                    |
-| ---------------- | ------------------------------------------------------------ |
-| String           | CHAR、STRING、VARCHAR                                        |
-| Date             | DATE                                                         |
-| Boolean          | BOOLEAN                                                      |
-| Integer          | TINYINT 、SMALLINT 、INT 、BIGINT                            |
-| Number           | DOUBLE                                               |
-| BigNumber        | LARGEINT、[DECIMAL](https://docs.starrocks.io/zh-cn/latest/sql-reference/sql-statements/data-types/DECIMAL)、DOUBLE。 |
-| Binary           | BINARY                                                       |
-| Timestamp        | DATETIME                                                     |
-| Internet Address | STRING                                                       |
-| serializable     |                                                              |
+| Kettle           | StarRocks                                                                                                  |
+| ---------------- |------------------------------------------------------------------------------------------------------------|
+| String           | CHAR、STRING、VARCHAR、JSON                                                                                   |
+| Date             | DATE、DATETIME                                                                                              |
+| Boolean          | BOOLEAN                                                                                                    |
+| Integer          | TINYINT 、SMALLINT 、INT 、BIGINT                                                                             |
+| Number           | DOUBLE、FLOAT                                                                                               |
+| BigNumber        | LARGEINT、[DECIMAL](https://docs.starrocks.io/zh-cn/latest/sql-reference/sql-statements/data-types/DECIMAL) |
+| Binary           | 暂不支持                                                                                                       |
+| Timestamp        | DATETIME、DATE                                                                                              |
+| Internet Address | STRING                                                                                                     |
+| serializable     | 暂不支持                                                                                                       |
 
 **Binary暂时不支持**
 **String：最后全部转换为String。**
@@ -206,8 +206,6 @@ MySQL [kettle_test]> select * from test_table;
 
 
 - 获取不到ErrorUrl得不到Errorlog。
-- 脏数据异常处理,目前是出现脏数据会直接置为null,之后实现异常数据的时候使用puterror记录下来。
-- 看一下mysql的数据类型处理
-- 写一个验证，验证数据映射是否对应。
 - kttle版本依赖
 - JDBC加载多个地址
+- Starrocks的时间类型数据是如何传输的
