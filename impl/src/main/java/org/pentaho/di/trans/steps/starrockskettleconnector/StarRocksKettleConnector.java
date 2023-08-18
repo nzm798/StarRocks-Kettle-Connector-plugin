@@ -18,7 +18,6 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class StarRocksKettleConnector extends BaseStep implements StepInterface {
@@ -26,7 +25,11 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
     private static Class<?> PKG = StarRocksKettleConnectorMeta.class;
     private StarRocksKettleConnectorMeta meta;
     private StarRocksKettleConnectorData data;
-
+    /**
+     * The desired delay time for data refresh。
+     * ageThreshold = expectDelayTime / scanFrequency;
+     * Calculate the latest submission time。
+     */
     private long expectDelayTime = 30000L;
 
     public StarRocksKettleConnector(StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta, Trans trans) {
@@ -103,7 +106,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
             StarRocksDataType dataType = data.fieldtype.get(meta.getFieldTable()[i]);
             values[i] = typeConvertion(sourceMeta, dataType, r[i]);
         }
-        if (supportUpsertDelete) {
+        if (supportUpsertDelete && meta.getUpsertOrDelete() != null && meta.getUpsertOrDelete().length() != 0) {
             values[data.keynrs.length] = StarRocksOP.parse(meta.getUpsertOrDelete()).ordinal();
         }
         return values;
@@ -217,7 +220,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
 //                    }
                     return timestampValue;
                 case ValueMetaInterface.TYPE_BINARY:
-                    throw new KettleException((BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.UnSupportBinary")+r.toString()));
+                    throw new KettleException((BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.UnSupportBinary") + r.toString()));
 
                 case ValueMetaInterface.TYPE_INET:
                     String address;
@@ -321,7 +324,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
             }
             if (!noNeedAddColumnsHeader) {
                 String[] headerColumns;
-                if (meta.getEnableUpsertDelete()) {
+                if (meta.getEnableUpsertDelete() && meta.getUpsertOrDelete() != null && meta.getUpsertOrDelete().length() != 0) {
                     headerColumns = new String[data.columns.length + 1];
                     System.arraycopy(data.columns, 0, headerColumns, 0, data.columns.length);
                     headerColumns[data.columns.length] = "__op";

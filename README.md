@@ -26,9 +26,11 @@ StarRocks Kettle Connector实现了Kettle的一个插件，它用于在StarRocks
 
 # How
 
-## 安装
+## Kettle安装
 
-首先，你需要从Github上下载[Kettle源码](https://github.com/pentaho/pentaho-kettle)，并根据Readme构建Kettle项目。Kettle项目使用的是Maven框架，需要如下准备：
+如果已经装有Ｋｅｔｔｌｅ可跳过此步骤。
+
+首先，需要从Github上下载对应版本的[Kettle源码](https://github.com/pentaho/pentaho-kettle)，并根据Readme构建Kettle项目。Kettle项目使用的是Maven框架，需要如下准备：
 
 - Maven,version3+
 - Java JDK 11
@@ -38,7 +40,7 @@ StarRocks Kettle Connector实现了Kettle的一个插件，它用于在StarRocks
 
 ![img](image/2.jpg)
 
-## 启动
+## Kettle启动
 
 解压上一步得到的pdi-ce-x.x.x.x-xxx.zip压缩包，得到Kettle应用data-integration无需安装。data-integration文件包含如下启动文件：
 
@@ -50,16 +52,47 @@ StarRocks Kettle Connector实现了Kettle的一个插件，它用于在StarRocks
 
 ## 导入StarRocks Kettle Connector 插件
 
-- 下载StarRocks Kettle Connector的插件源码，将其进行打包编译得到StarRocks-Kettle-Connector-plugin.jar包。
-- 将StarRocks-Kettle-Connector-plugin.jar包放在data-integration\plugins文件目录下。
-- 启动Spoon，转换/批量加载中即可看到StarRocks Kettle Connector插件。
+- 下载StarRocks Kettle Connector的插件源码，将其进行打包编译得到**assemblies/plugin/target/StarRocks-Kettle-Connector-plugin-x.x.x.x-xxx.zip**包。
+- 将**StarRocks-Kettle-Connector-plugin-x.x.x.x-xxx.zip**包放在**data-integration\plugins**文件目录下。
+- 将插件包直接解压到当前文件夹，生成**StarRocks-Kettle-Connector**文件包。
+- 启动Spoon，**转换/批量**加载中即可看到**StarRocks Kettle Connector**插件。
 
 ![img](image/6.jpg)
+
+拖拽或者双击将StarRocks Kettle Connector插件生成新的step，之后再双击右侧新添加的StarRocks Kettle Connector插件step即可配置数据导入参数。
+
+![](image/9.jpg)
+
+## 参数说明
+
+| 参数                                            | 是否必填 | 默认值                     | 数据类型 | 描述                                                         |
+| :---------------------------------------------- | -------- | -------------------------- | -------- | ------------------------------------------------------------ |
+| 步骤名称-Step name                              | 是       | StarRocks Kettle Connector | String   | 该步骤名称                                                   |
+| Http Url                                        | 是       | 无                         | String   | FE 的 HTTP Server 连接地址。格式为 `<fe_host1>:<fe_http_port1>;<fe_host2>:<fe_http_port2>`，可以提供多个地址，使用英文分号 (;) 分隔。例如 `192.168.xxx.xxx:8030;192.168.xxx.xxx:8030`。 |
+| JDBC Url                                        | 是       | 无                         | String   | FE 的 MySQL Server 连接地址。格式为 `jdbc:mysql://<fe_host>:<fe_query_port>`。 |
+| 数据库-DataBase Name                            | 是       | 无                         | String   | StarRocks 目标数据库的名称。                                 |
+| 目标表-Table Name                               | 是       | 无                         | String   | StarRocks 目标数据表的名称。                                 |
+| 用户名-User                                     | 是       | 无                         | String   | 用于访问 StarRocks 集群的用户名。该账号需具备 StarRocks 目标数据表的写权限。有关用户权限的说明，请参见[用户权限](https://docs.starrocks.io/zh-cn/latest/administration/User_privilege)。 |
+| 密码-Password                                   | 否       | 无                         | String   | 用于访问 StarRocks 集群的用户密码。若没有密码则不用填写。    |
+| 格式-Format                                     | 是       | CSV                        | String   | Stream Load 导入时的数据格式。取值为 `CSV` 或者 `JSON`。     |
+| 列分割符-Column Sepatator                       | 否       | \t                         | String   | 用于指定源数据文件中的列分隔符。如果不指定该参数，则默认为 `\t`，即 Tab。必须确保这里指定的列分隔符与源数据文件中的列分隔符一致。该参数当选择CSV格式的时候必须填写。<br />**说明**<br />StarRocks 支持设置长度最大不超过 50 个字节的 UTF-8 编码字符串作为列分隔符，包括常见的逗号 (,)、Tab 和 Pipe (） |
+| Json Paths                                      | 否       | 无                         | String   | 用于指定待导入的字段的名称。仅在使用匹配模式导入 JSON 数据时需要指定该参数。当格式选择JSON时填写该参数。参见[导入 JSON 数据时配置列映射关系](https://docs.starrocks.io/zh-cn/latest/sql-reference/sql-statements/data-manipulation/STREAM LOAD#导入-json-数据时配置列映射关系). |
+| 一次导入最大字节-Max Bytes                      | 否       | 94371840(90M)              | String   | 数据攒批的大小，达到该阈值后将数据通过 Stream Load 批量写入 StarRocks。取值范围：[64MB, 10GB]。 |
+| 刷新频率-Scanning Frequency                     | 否       | 50                         | String   | 数据刷新的时间，每隔多长时间进行一次数据刷新写入。参数单位为毫秒，取值大于等于50毫秒。 |
+| 导入作业最大容错率-Max Filter Ratio             | 否       | 0                          | String   | 用于指定导入作业的最大容错率，即导入作业能够容忍的因数据质量不合格而过滤掉的数据行所占的最大比例。取值范围：0~1。默认值：0。更多说明，请参见 [STREAM LOAD](https://docs.starrocks.io/zh-cn/latest/sql-reference/sql-statements/data-manipulation/STREAM LOAD#opt_properties)。 |
+| StarRocks连接超时时间-Connect Timeout           | 否       | 1000                       | String   | 连接 `load-url` 的超时时间。取值范围：[100, 60000]。         |
+| Stream Load载入数据超时时间-Stream Load Timeout | 否       | 600                        | String   | Stream Load 超时时间，单位为秒。                             |
+| 部分导入-Partial Update                         | 否       | 否                         |          | StarRocks v2.2 起，主键模型表支持部分更新，可以选择只更新部分指定的列。若勾选实现部分导入需要在“部分导入行”中填写要导入的列名。 |
+| 部分导入行-Partial Update Columns               | 否       | 无                         | String   | 需要部分更新的列名。需要填写所要写入的目标表中对应的列名。各列命之间要以英文逗号隔开“,”，例如：col1,col2col3 |
+| 是否支持更新和删除-Enable Upsert Delete         | 否       | 无                         |          | StarRocks 目前支持 UPSERT 和 DELETE 操作，不支持一次作业区分UPSERT和DELETE，只能对一次导入单独实现UPSERT和DELETE。<br />  **UPSERT**: 该操作用于插入或更新数据。如果数据已存在（基于主键/唯一键），它将更新该数据；如果数据不存在，它将插入新数据。<br /> **DELETE**: 该操作用于删除符合条件的数据记录。需要指定删除的条件，满足该条件的所有记录都将被删除。 |
+| Upsert or Delete                                | 否       | 无                         | String   | 当勾选“是否支持更新和删除”时需要选择是执行UPSERT或DELETE操作。若未选择则不执行更新或删除操作。 |
+| 表字段-Table field                              | 否       | 无                         | String   | StarRocks目标表中各列的名称。需要与流字段一一对应。          |
+| 流字段-Stream field                             | 否       | 无                         | String   | 上一步骤传输过来的数据列名称。从上一步骤传递的数据列名称和类型必须与StarRocks目标表的数据格式和大小完全匹配。 |
 
 根据插件ui提示输入StarRocks连接配置信息。
 
 ```Java
-'scan-url'='fe_ip1:8030,fe_ip2:8030,fe_ip3:8030'
+'http-url'='fe_ip1:8030,fe_ip2:8030,fe_ip3:8030'
 'jdbc-url'='jdbc:mysql://fe_ip:9030'
 'username'='root'
 'password'=''
@@ -72,14 +105,6 @@ StarRocks Kettle Connector实现了Kettle的一个插件，它用于在StarRocks
 // and you need to explicitly add the '__op' column at the end of 'partial-update-columns','k1,k2,k3'.
 'partial-update'='true'
 'partial-update-columns'='k1,k2,k3'
-// StarRocks supports two types of data delivery semantics, "at-least-once" and "exactly-once".
-// "Exactly-once" is implemented through the Stream Load transaction interface using transactions and checkpoints.
-// "At-least-once" achieves data accuracy through a retry mechanism, 
-// where if the system doesn't receive a confirmation message after data processing, it will resend the data.
-// The default is exactly-once.
-'semantic'='exactly-once'
-// The import parameters of Stream Load, using JSON format for import.
-'loadProps'={}
 // The maximum size of data that can be loaded into StarRocks at a time. 
 // Valid values: 64 MB to 10 GB. 
 'maxbytes'=94371840
@@ -93,10 +118,6 @@ StarRocks Kettle Connector实现了Kettle的一个插件，它用于在StarRocks
 // Stream Load timeout period, in seconds.
 'timeout'=600
 ```
-
-自动获取需要导入的数据库的字段信息，该字段信息的数据类型是与上游中导入的数据类型对应，在向StarRocks导入数时会实现数类型的映射，如需更改顺序则直接在其上更改。
-
-![img](image/8.jpg)
 
 ## StarRocks-Kettle数据类型对应关系
 
@@ -127,14 +148,7 @@ StarRocks Kettle Connector实现了Kettle的一个插件，它用于在StarRocks
 | Internet Address | STRING                                                                                                     |
 | serializable     | 暂不支持                                                                                                       |
 
-**Binary暂时不支持**
-**String：最后全部转换为String。**
 
-**Integer、Number：根据Kettle中数据的大小和StarRocks数据库中的数据类型对应选择最后的数据类型**
-
-**BigNumber：最后数据都转换为DECIMAL**
-
-**serializable：StarRocks中无与之相对应的数据类型**
 
 ## 使用示例
 
@@ -191,18 +205,17 @@ MySQL [kettle_test]> select * from test_table;
 # Limitation
 
 - 不支持at-least-once和exactly-once导入方式。
+- 只支持CSV和JSON两种数据格式。
 
 ## 目前还未实现
 - 没有添加addHeaders(getSinkStreamLoadProperties())。未获取多余的StarRocks的参数配置。
-- 没有添加选定列插入的方法。
 - 如果想要实现表格中的一部分数据导入StarRocks中的一部分，中间要加上一个过滤步骤。
 - 对于数据的更新插入和删除功能还没有实现分别的删除和更新插入，只能单独实现。todo
 - 在kettle中现实的FieldTable名称应该和数据库的名称一样。
-- 可以尝试根据dialog中的stepname命名.labelPrefix()。
-- 在ui中可以实现自动搜索目标数据库中的表。（还未实现）
-- 可以尝试优化StarRocksQueryVisitor的创建过程，不用每次都重新创建一次
+- 可以尝试根据dialog中的stepname命名.labelPrefix()，
+- **在ui中可以实现自动搜索目标数据库中的表。（还未实现）**
 - 映射需要实现目标表和源表的字段顺序正确，如果对应不对则需更改StarRocks目标表的字段顺序
-- 目前只支持StarRocks的版本为2.4以上，只实现了v2
+- 目前只支持StarRocks的版本为2.4以上，只实现了v2。
 
 
 - 获取不到ErrorUrl得不到Errorlog。
