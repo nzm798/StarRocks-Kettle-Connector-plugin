@@ -152,9 +152,13 @@ StarRocks Kettle Connector实现了Kettle的一个插件，它用于在StarRocks
 
 ## 使用示例
 
-### 准备工作
+本节介绍如何使用StarRocks-Kettle Connector插件从本地文件系统导入CSV或JSON格式的数据。
 
-在本地文件系统中创建一个 CSV 格式的数据文件 `example1.csv`。文件一共包含三列，分别代表用户 ID、用户姓名和用户得分，如下所示：
+### 导入CSV格式的数据
+
+#### 准备工作
+
+1. 在本地文件系统中创建一个 CSV 格式的数据文件 `example1.csv`。文件一共包含三列，分别代表用户 ID、用户姓名和用户得分，如下所示：
 
 ```Plain
 1,Lily,23
@@ -163,11 +167,45 @@ StarRocks Kettle Connector实现了Kettle的一个插件，它用于在StarRocks
 4,Julia,25
 ```
 
-### 使用Kettle读取csv文件数据
+2. 在数据库 `kettle_test` 中创建一张名为 `student` 的主键模型表。表包含 `id`、`name` 和 `score` 三列，主键为 `id` 列，如下所示：
+
+~~~mysql
+CREATE TABLE `student`
+(
+    `id` int(11) NOT NULL COMMENT "用户 ID",
+    `name` varchar(65533) NULL COMMENT "用户姓名",
+    `score` int(11) NOT NULL COMMENT "用户得分"
+)
+ENGINE=OLAP
+PRIMARY KEY(`id`)
+DISTRIBUTED BY HASH(`id`);
+~~~
+
+
+
+#### 使用Kettle读取csv文件数据
+
+1. 填写文件信息，并将列分割符改成“,”与CSV文件中一样。当CSV文件中没有列头行时取消列头行的勾选。
 
 ![img](image/5.jpg)
 
-### 向StarRocks中导入数据
+2. 获取字段信息
+
+> 点击**获取字段**，得到CSV中的字段信息和类型。
+>
+> 若CSV文件中没有包含头行信息，则**名称**列将会显示**Field_xxx**，为了后续步骤区分字段名称可以自行命名。
+>
+> 字段类型Kettle会自动识别，如果需要更改可直接下拉菜单更改类型。
+
+![](image/10.jpg)
+
+3. 数据预览
+
+当配置完信息后，可点击最后的**预览**按钮预览需要导入的数据。
+
+![](image/11.jpg)
+
+#### 向StarRocks中导入数据
 
 1. 配置StarRocks数据导入参数。(最终开发会实现如上ui输入框的格式来进行参数的输入)
 
