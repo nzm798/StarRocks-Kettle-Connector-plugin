@@ -185,7 +185,7 @@ DISTRIBUTED BY HASH(`id`);
 
 #### 使用Kettle读取csv文件数据
 
-1. 填写文件信息，并将列分割符改成“,”与CSV文件中一样。当CSV文件中没有列头行时取消列头行的勾选。
+1. 填写文件信息，并将列分割符改成`,`与CSV文件中一样。当CSV文件中没有列头行时取消列头行的勾选。
 
 ![img](image/5.jpg)
 
@@ -193,7 +193,7 @@ DISTRIBUTED BY HASH(`id`);
 
 > 点击**获取字段**，得到CSV中的字段信息和类型。
 >
-> 若CSV文件中没有包含头行信息，则**名称**列将会显示**Field_xxx**，为了后续步骤区分字段名称可以自行命名。
+> 若CSV文件中没有包含头行信息，则**名称**列将会显示`Field_xxx`，为了后续步骤区分字段名称可以自行命名。
 >
 > 字段类型Kettle会自动识别，如果需要更改可直接下拉菜单更改类型。
 
@@ -207,43 +207,119 @@ DISTRIBUTED BY HASH(`id`);
 
 #### 向StarRocks中导入数据
 
-1. 配置StarRocks数据导入参数。(最终开发会实现如上ui输入框的格式来进行参数的输入)
+1. 添加StarRocks Kettle Connector插件，将**CSV文件输入**步骤输出的数据导入**StarRocks Kettle Connector**。
 
-```Java
-'scan-url'='127.0.0.1:8030'
-'jdbc-url'='jdbc:mysql://127.0.0.1:9030'
-'username'='root'
-'password'=''
-'database-name'='kettle_test'
-'table-name'='test_table'
-'format'='CSV'
-'semantic'='exactly-once'
-'loadProps'={}
-```
+![](image/13.jpg)
 
-1. 点击开始按钮执行导入作业
+2. 如下图所示配置StarRocks Kettle Connector插件参数。
+
+![](image/12.jpg)
+
+> **说明**
+>
+> 您可以通过 [SHOW FRONTENDS](https://docs.starrocks.io/zh-cn/latest/sql-reference/sql-statements/Administration/SHOW FRONTENDS) 命令查看 FE 节点的 IP 地址和 HTTP 端口号。
+
+此处**列分割符**与上一步**CSV文件输入**中的分隔符并无关联可随意指定。当连接StarRocks时不需**密码**时填写为空即可。
+
+最下面表格中，**表字段**为目标StarRocks数据库表字段，**流字段**为上一步骤中传来的字段名称。若两者对应关系出现错误，需要更改**表字段**使其与流字段对应，不要改变流字段的顺序。可以直接在表字段名称上下拉菜单更改，也可点击右侧**编辑映射**。
+
+![](image/14.jpg)
+
+4. 点击开始按钮执行导入作业
+
+点击左上的开始按钮则开始转换，转换成功如下图所示。
 
 ![img](image/7.jpg)
 
-1. 查询导入结果
+5. 查询导入结果
 
 ```SQL
-MySQL [kettle_test]> select * from test_table;
-+------+-----------+-------+
-| id   | name      | scores|
-+------+-----------+-------+
-|    1 | Lily      |   23  |
-|    2 | Rose      |   23  |
-|    3 | Alice     |   24  |
-|    4 | Julia     |   25  |
-+------+-----------+-------+
-4 rows in set (0.02 sec)
+StarRocks > select * from student;
++------+-------+-------+
+| id   | name  | score |
++------+-------+-------+
+|    3 | Alice |    24 |
+|    1 | Lily  |    23 |
+|    2 | Rose  |    23 |
+|    4 | Julia |    25 |
++------+-------+-------+
+4 rows in set (0.01 sec)
 ```
+
+### 导入JSON格式的数据
+
+#### 数据准备
+
+1. 在本地文件系统中创建一个 JSON 格式的数据文件 `example2.json`。文件一共包含两个字段，分别代表城市名称和城市 ID，如下所示：
+
+~~~json
+{"name": "北京", "id": 1}
+~~~
+
+2. 在数据库 `kettle_test` 中创建一张名为 `city` 的主键模型表。表包含 `id` 和 `city` 两列，主键为 `id` 列，如下所示：
+
+~~~mysql
+CREATE TABLE `city`
+(
+    `id` int(11) NOT NULL COMMENT "城市 ID",
+     `city` varchar(65533) NULL COMMENT "城市名称"
+)
+ENGINE=OLAP
+PRIMARY KEY(`id`)
+DISTRIBUTED BY HASH(`id`);
+~~~
+
+
+
+#### 使用Kettle读取JSON文件数据
+
+1. 在Kettle中添加**JSON Input**插件，并配置信息。
+
+![](image/15.jpg)
+
+在**文件或路径**中添加`example2.json`文件路径，点击添加即可在选中的文件中看到**文件或路径**中填写的路径。
+
+在**字段**中选择`Select fields`，并选择要导入的字段信息。与**CSV**相同要根据具体的数据与StarRocks库中的数据类型相对应更改**类型字段**。
+
+![](image/16.jpg)
+
+
+
+#### 向StarRocks中导入数据
+
+1. 配置StarRocks参数
+
+![](image/17.jpg)
+
+> 目前暂不支持列计算
+
+其余配置与**CSV**基本相同，需要更改**格式**与**Json Path**参数。其中Json Path顺序需要和表字段相同或不填写。
+
+2. 启动任务查询结果
+
+~~~mysql
+StarRocks > select * from city;
++------+--------+
+| id   | city   |
++------+--------+
+|    1 | 北京   |
++------+--------+
+1 row in set (0.00 sec)
+~~~
+
+
+
+### 数据变更
+
+
+
+### 部分导入
 
 # Limitation
 
 - 不支持at-least-once和exactly-once导入方式。
 - 只支持CSV和JSON两种数据格式。
+- 暂不支持列数据计算，只可通过在Kettle中增加相关步骤进行过滤转换。
 
 ## 目前还未实现
 - 没有添加addHeaders(getSinkStreamLoadProperties())。未获取多余的StarRocks的参数配置。
