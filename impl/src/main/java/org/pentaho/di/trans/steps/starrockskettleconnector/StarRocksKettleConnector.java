@@ -18,6 +18,8 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class StarRocksKettleConnector extends BaseStep implements StepInterface {
@@ -42,9 +44,9 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
         data = (StarRocksKettleConnectorData) sdi;
 
         try {
-            // Long a = new Long(101);
-            // Long b = new Long(80);
-            // Object[] r = new Object[]{(Object) a, (Object) "Lily", (Object) b};
+            //Long a = new Long(1);
+            //Long b = new Long(80);
+            //Object[] r = new Object[]{(Object) a, (Object) "Lily", (Object) b};
             Object[] r = getRow(); // Get row from input rowset & set row busy!
             if (r == null) { // no more input to be expected...
                 setOutputDone();
@@ -335,6 +337,29 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                         .map(f -> String.format("`%s`", f.trim().replace("`", "")))
                         .collect(Collectors.joining(","));
                 defaultTablePropertiesBuilder.columns(cols);
+            } else {
+                String cols = Arrays.stream(data.columns)
+                        .map(f -> String.format("`%s`", f.trim().replace("`", "")))
+                        .collect(Collectors.joining(","));
+                defaultTablePropertiesBuilder.columns(cols);
+            }
+        }
+
+        Map<String, String> streamLoadProperties = new HashMap<>();
+        // By default, using json format should enable strip_outer_array and ignore_json_size,
+        // which will simplify the configurations
+        if (dataFormat instanceof StreamLoadDataFormat.JSONFormat) {
+            if (!streamLoadProperties.containsKey("strip_outer_array")) {
+                streamLoadProperties.put("strip_outer_array", "true");
+            }
+            if (!streamLoadProperties.containsKey("ignore_json_size")) {
+                streamLoadProperties.put("ignore_json_size", "true");
+            }
+            if (!streamLoadProperties.containsKey("format")) {
+                streamLoadProperties.put("format", "json");
+            }
+            if (meta.getJsonpaths() != null && meta.getJsonpaths().length() != 0) {
+                streamLoadProperties.put("jsonpaths", meta.getJsonpaths());
             }
         }
 
@@ -350,13 +375,12 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 .connectTimeout(meta.getConnecttimeout())
                 .version(meta.getStarRocksQueryVisitor().getStarRocksVersion())
                 .expectDelayTime(expectDelayTime)
+                .addHeaders(streamLoadProperties)
                 .addHeader("timeout", String.valueOf(meta.getTimeout()))
                 .addHeader("max_filter_ratio", String.valueOf(meta.getMaxFilterRatio()));
 
-        if (meta.getFormat() == "CSV") {
+        if (dataFormat instanceof StreamLoadDataFormat.CSVFormat) {
             builder.addHeader("column_separator", meta.getColumnSeparator());
-        } else if (meta.getFormat() == "JSON") {
-            builder.addHeader("jsonpaths", meta.getJsonpaths());
         }
 
         return builder.build();

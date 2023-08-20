@@ -47,10 +47,10 @@ public class StarRocksKettleConnectorWriterTest {
         vars.put("httpurl", "10.112.133.149:8030");
         vars.put("jdbcurl", "jdbc:mysql://10.112.133.149:9030");
         vars.put("databasename", "kettle_test");
-        vars.put("tablename", "table1");
+        vars.put("tablename", "student");
         vars.put("user", "root");
         vars.put("password", "");
-        vars.put("format", "CSV");
+        vars.put("format", "JSON");
         transMeta.injectVariables(vars);
 
         lmeta = new StarRocksKettleConnectorMeta();
@@ -68,6 +68,7 @@ public class StarRocksKettleConnectorWriterTest {
         lmeta.setTimeout(600);
         lmeta.setMaxFilterRatio(0);
         lmeta.setColumnSeparator("\t");
+        lmeta.setJsonpaths("[\"$.id\", \"$.name\",\"$.score\"]");
 
         lmeta.setFieldStream(new String[]{"id","name","score"});
         lmeta.setFieldTable(new String[]{"id","name","score"});
