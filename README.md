@@ -309,11 +309,206 @@ StarRocks > select * from city;
 
 
 
-### 数据变更
+### 通过导入实现数据变更
+
+StarRocks 还支持部分更新 (Partial Update) 和条件更新 (Conditional Update)。
 
 
 
-### 部分导入
+#### 数据变更
+
+> 目前**StarRocks Kettle Connector**目前支持**UPSERT**和**DELETE**操作，仅支持在一个步骤中使用一种操，不支持一个步骤中同时实现**UPSERT**和**DELETE**。
+
+##### 使用说明
+
+- 必须确保待导入的数据文件中每一行的列数都相同。
+- 所更新的列必须包含主键列。
+
+##### UPSERT
+
+* 准备数据文件
+
+在本地文件系统创建一个 CSV 格式的数据文件 `example1.csv`。文件包含三列，分别代表用户 ID、用户姓名和用户得分，如下所示：
+
+~~~mysql
+1,Lily,90
+5,Jeson,0
+~~~
+
+* 准备 StarRocks 表。
+
+在数据库 `kettle_test` 中创建一张名为 `table1` 的主键模型表。表包含 `id`、`name` 和 `score` 三列，分别代表用户 ID、用户名称和用户得分，主键为 `id` 列，如下所示：
+
+~~~mysql
+CREATE TABLE `student`
+(
+    `id` int(11) NOT NULL COMMENT "用户 ID",
+    `name` varchar(65533) NOT NULL COMMENT "用户姓名",
+    `score` int(11) NOT NULL COMMENT "用户得分"
+)
+ENGINE=OLAP
+PRIMARY KEY(`id`)
+DISTRIBUTED BY HASH(`id`);
+~~~
+
+向数据库中插入数据：
+
+~~~mysql
+StarRocks > select * from student;
++------+-------+-------+
+| id   | name  | score |
++------+-------+-------+
+|    1 | Lily  |    23 |
+|    2 | Rose  |    23 |
+|    4 | Julia |    25 |
+|    3 | Alice |    24 |
++------+-------+-------+
+4 rows in set (0.01 sec)
+~~~
+
+* UPSERT数据
+
+通过导入，把 `example1.csv` 文件中 `id` 为 `1` 的数据更新到 `student` 表中，并且把 `example1.csv` 文件中 `id` 为 `5` 的数据插入到 `student` 表中。
+
+配置信息如下图所示，首先要勾选**是否支持更新和删除**并在`Upsert or Delete`选中UPSERT。
+
+![](image/18.jpg)
+
+* 运行并查询数据
+
+导入完成后，查询`student`表的数据，如下所示：
+
+~~~mysql
+StarRocks > select * from student;
++------+-------+-------+
+| id   | name  | score |
++------+-------+-------+
+|    3 | Alice |    24 |
+|    2 | Rose  |    23 |
+|    4 | Julia |    25 |
+|    1 | Lily  |    90 |
+|    5 | Jeson |     0 |
++------+-------+-------+
+5 rows in set (0.00 sec)
+~~~
+
+从查询结果可以看到，`exaple1.csv`文件中`id`为`1`的数据已经更新`score`值，`id`为`5`的数据被插入到数据库。
+
+
+
+##### DELETE
+
+* 准备数据文件
+
+在本地文件系统创建一个 CSV 格式的数据文件 `example2.csv`。文件包含三列，分别代表用户 ID、用户姓名和用户得分，如下所示：
+
+~~~mysql
+2,Rose,23
+~~~
+
+* 准备StarRocks表
+
+使用上一步创建的数据库 `kettle_test` 中名为 `student` 的主键模型表。表包含 `id`、`name` 和 `score` 三列，分别代表用户 ID、用户名称和用户得分，主键为 `id` 列，其中数据如下所示：
+
+~~~mysql
+StarRocks > select * from student;
++------+-------+-------+
+| id   | name  | score |
++------+-------+-------+
+|    3 | Alice |    24 |
+|    2 | Rose  |    23 |
+|    4 | Julia |    25 |
+|    1 | Lily  |    90 |
+|    5 | Jeson |     0 |
++------+-------+-------+
+5 rows in set (0.00 sec)
+~~~
+
+* 导入数据
+
+通过导入，把 `example2.csv` 文件中 `id` 为 `2` 的数据从 `student` 表中删除。
+
+![](image/19.jpg)
+
+* 查询数据
+
+导入完成后，查询 `table2` 表的数据，如下所示：
+
+~~~mysql
+StarRocks > select * from student;
++------+-------+-------+
+| id   | name  | score |
++------+-------+-------+
+|    3 | Alice |    24 |
+|    5 | Jeson |     0 |
+|    1 | Lily  |    90 |
+|    4 | Julia |    25 |
++------+-------+-------+
+4 rows in set (0.00 sec)
+~~~
+
+从查询结果可以看到，`example2.csv`文件中`id`为`2`的数据已经从`student`表中删除。
+
+
+
+#### 部分导入
+
+自 StarRocks v2.2 起，主键模型表支持部分更新 (Partial Update)，您可以选择只更新部分指定的列。这里以 CSV 格式的数据文件为例进行说明。
+
+* 准备数据文件
+
+在本地文件系统创建一个 CSV 格式的数据文件 `example3.csv`。文件包含两列，分别代表用户 ID 和用户姓名，如下所示：
+
+~~~mysql
+6,Rose
+7,Appolo
+~~~
+
+* 准备StarRocks表
+
+使用上一步创建的数据库 `kettle_test` 中名为 `student` 的主键模型表。表包含 `id`、`name` 和 `score` 三列，分别代表用户 ID、用户名称和用户得分，主键为 `id` 列，其中数据如下所示：
+
+~~~mysql
+StarRocks > select * from student;
++------+-------+-------+
+| id   | name  | score |
++------+-------+-------+
+|    3 | Alice |    24 |
+|    5 | Jeson |     0 |
+|    1 | Lily  |    90 |
+|    4 | Julia |    25 |
++------+-------+-------+
+4 rows in set (0.00 sec)
+~~~
+
+* 导入数据
+
+通过导入，把 `example3.csv` 里的两列数据更新到 `student` 表的 `id` 和 `name` 两列。
+
+需要勾选**部分导入**，其中**部分导入行**可填写也可为空。
+
+![](image/20.jpg)
+
+* 查询数据
+
+导入完成后，查询 `student` 表的数据，如下所示：
+
+~~~mysql
+StarRocks > select * from student;
++------+--------+-------+
+| id   | name   | score |
++------+--------+-------+
+|    1 | Lily   |    90 |
+|    4 | Julia  |    25 |
+|    7 | Appolo |     0 |
+|    3 | Alice  |    24 |
+|    5 | Jeson  |     0 |
+|    6 | Rose   |     0 |
++------+--------+-------+
+6 rows in set (0.00 sec)
+~~~
+
+从查询结果可以看到，`example3.csv` 文件中 `id` 为 `6`和`7` 的数据已经更新到 `student` 表中，并且 `example3.csv` 文件中 `id` 为 `6` 和 `7` 的数据已经插入到 `student` 表中。
 
 # Limitation
 

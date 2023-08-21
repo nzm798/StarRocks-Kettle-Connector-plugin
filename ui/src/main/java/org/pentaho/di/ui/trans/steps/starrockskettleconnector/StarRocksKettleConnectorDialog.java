@@ -76,11 +76,11 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
     private Label wlColumnSeparator;
     private Button wbColumnSeparator;
     private TextVar wColumnSeparator;
-    private FormData fdlColumnSeparator,fdColumnSeparator;
+    private FormData fdlColumnSeparator, fdColumnSeparator;
 
     private Label wlJsonPaths;
     private TextVar wJsonPaths;
-    private FormData fdlJsonPaths,fdJsonPaths;
+    private FormData fdlJsonPaths, fdJsonPaths;
 
     private Label wlMaxBytes;
     private TextVar wMaxBytes;
@@ -116,7 +116,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
 
     private Label wlScanningFrequency;
     private TextVar wScanningFrequency;
-    private FormData fdlScanningFrequency,fdScanningFrequency;
+    private FormData fdlScanningFrequency, fdScanningFrequency;
 
     private Label wlReturn;
     private TableView wReturn;
@@ -335,43 +335,43 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         wFormat.setLayoutData(fdFormat);
 
         // Column Separator line...
-        wlColumnSeparator = new Label( shell, SWT.RIGHT );
-        wlColumnSeparator.setText( BaseMessages.getString( PKG, "StarRocksKettleConnectorDialog.ColumnSeparator.Label" ) );
-        props.setLook( wlColumnSeparator );
+        wlColumnSeparator = new Label(shell, SWT.RIGHT);
+        wlColumnSeparator.setText(BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.ColumnSeparator.Label"));
+        props.setLook(wlColumnSeparator);
         fdlColumnSeparator = new FormData();
-        fdlColumnSeparator.left = new FormAttachment( 0, 0 );
-        fdlColumnSeparator.right = new FormAttachment( middle, -margin );
-        fdlColumnSeparator.top = new FormAttachment( wFormat, margin );
-        wlColumnSeparator.setLayoutData( fdlColumnSeparator );
+        fdlColumnSeparator.left = new FormAttachment(0, 0);
+        fdlColumnSeparator.right = new FormAttachment(middle, -margin);
+        fdlColumnSeparator.top = new FormAttachment(wFormat, margin);
+        wlColumnSeparator.setLayoutData(fdlColumnSeparator);
 
-        wbColumnSeparator = new Button( shell, SWT.PUSH | SWT.CENTER );
-        props.setLook( wbColumnSeparator );
-        wbColumnSeparator.setText( BaseMessages.getString( PKG, "StarRocksKettleConnectorDialog.ColumnSeparator.Button" ) );
+        wbColumnSeparator = new Button(shell, SWT.PUSH | SWT.CENTER);
+        props.setLook(wbColumnSeparator);
+        wbColumnSeparator.setText(BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.ColumnSeparator.Button"));
         FormData fdbColumnSeparator = new FormData();
-        fdbColumnSeparator.top = new FormAttachment( wFormat, margin );
-        fdbColumnSeparator.right = new FormAttachment( 100, 0 );
-        wbColumnSeparator.setLayoutData( fdbColumnSeparator );
+        fdbColumnSeparator.top = new FormAttachment(wFormat, margin);
+        fdbColumnSeparator.right = new FormAttachment(100, 0);
+        wbColumnSeparator.setLayoutData(fdbColumnSeparator);
 
-        wColumnSeparator = new TextVar( transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-        props.setLook( wColumnSeparator );
-        wColumnSeparator.addModifyListener( lsMod );
+        wColumnSeparator = new TextVar(transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
+        props.setLook(wColumnSeparator);
+        wColumnSeparator.addModifyListener(lsMod);
         fdColumnSeparator = new FormData();
-        fdColumnSeparator.left = new FormAttachment( middle, 0 );
-        fdColumnSeparator.top = new FormAttachment( wFormat, margin );
-        fdColumnSeparator.right = new FormAttachment( wbColumnSeparator, -margin );
-        wColumnSeparator.setLayoutData( fdColumnSeparator );
+        fdColumnSeparator.left = new FormAttachment(middle, 0);
+        fdColumnSeparator.top = new FormAttachment(wFormat, margin);
+        fdColumnSeparator.right = new FormAttachment(wbColumnSeparator, -margin);
+        wColumnSeparator.setLayoutData(fdColumnSeparator);
         // Allow the insertion of tabs as separator...
-        wbColumnSeparator.addSelectionListener( new SelectionAdapter() {
-            public void widgetSelected( SelectionEvent se ) {
+        wbColumnSeparator.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent se) {
                 Text t = wColumnSeparator.getTextWidget();
-                if ( t != null ) {
-                    t.insert( "\t" );
+                if (t != null) {
+                    t.insert("\t");
                 }
             }
-        } );
+        });
 
         // Json Paths line..
-        wlJsonPaths=new Label(shell,SWT.RIGHT);
+        wlJsonPaths = new Label(shell, SWT.RIGHT);
         wlJsonPaths.setText(BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.JsonPaths.Label"));
         props.setLook(wlJsonPaths);
         fdlJsonPaths = new FormData();
@@ -409,19 +409,19 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         wMaxBytes.setLayoutData(fdMaxBytes);
 
         //Scanning Frequency line...
-        wlScanningFrequency=new Label(shell,SWT.RIGHT);
-        wlScanningFrequency.setText(BaseMessages.getString(PKG,"StarRocksKettleConnectorDialog.ScanningFrequency.Label"));
+        wlScanningFrequency = new Label(shell, SWT.RIGHT);
+        wlScanningFrequency.setText(BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.ScanningFrequency.Label"));
         props.setLook(wlScanningFrequency);
-        fdlScanningFrequency=new FormData();
+        fdlScanningFrequency = new FormData();
         fdlScanningFrequency.left = new FormAttachment(0, 0);
         fdlScanningFrequency.right = new FormAttachment(middle, -margin);
         fdlScanningFrequency.top = new FormAttachment(wMaxBytes, margin * 2);
         wlScanningFrequency.setLayoutData(fdlScanningFrequency);
 
-        wScanningFrequency=new TextVar(transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
+        wScanningFrequency = new TextVar(transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
         props.setLook(wScanningFrequency);
         wScanningFrequency.addModifyListener(lsMod);
-        fdScanningFrequency=new FormData();
+        fdScanningFrequency = new FormData();
         fdScanningFrequency.left = new FormAttachment(middle, 0);
         fdScanningFrequency.top = new FormAttachment(wMaxBytes, margin * 2);
         fdScanningFrequency.right = new FormAttachment(100, 0);
@@ -861,18 +861,18 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
             logDebug(BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.Log.GettingKeyInfo"));
         }
         wFormat.setText(Const.NVL(input.getFormat(), ""));
-        wColumnSeparator.setText(Const.NVL((input.getColumnSeparator()),"\t"));
-        wJsonPaths.setText(Const.NVL(input.getJsonpaths(),""));
+        wColumnSeparator.setText(Const.NVL((input.getColumnSeparator()), "\t"));
+        wJsonPaths.setText(Const.NVL(input.getJsonpaths(), ""));
         wMaxBytes.setText(Const.NVL(String.valueOf(input.getMaxbytes()), ""));
-        wScanningFrequency.setText(Const.NVL(String.valueOf(input.getScanningFrequency()),""));
+        wScanningFrequency.setText(Const.NVL(String.valueOf(input.getScanningFrequency()), ""));
         wMaxFilterRatio.setText(Const.NVL(String.valueOf(input.getMaxFilterRatio()), ""));
         wConnectTimeout.setText(Const.NVL(String.valueOf(input.getConnecttimeout()), ""));
         wTimeout.setText(Const.NVL(String.valueOf(input.getTimeout()), ""));
         wPartialUpdate.setSelection(input.getPartialUpdate());
         wEnableUpsertDelete.setSelection(input.getEnableUpsertDelete());
-        wUpsertorDelete.setText(Const.NVL(input.getUpsertOrDelete(),""));
+        wUpsertorDelete.setText(Const.NVL(input.getUpsertOrDelete(), ""));
 
-        if (input.getPartialcolumns()!=null){
+        if (input.getPartialcolumns() != null) {
             wPartialColumns.setText(Const.NVL(String.join(",", input.getPartialcolumns()), ""));
         }
 
@@ -1000,7 +1000,11 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         inf.setConnecttimeout(Integer.valueOf(wConnectTimeout.getText()));
         inf.setTimeout(Integer.valueOf(wTimeout.getText()));
         inf.setPartialupdate(wPartialUpdate.getSelection());
-        inf.setPartialcolumns(wPartialColumns.getText().split(";"));
+        if (wPartialColumns.getText() != null && wPartialColumns.getText().length() != 0) {
+            inf.setPartialcolumns(wPartialColumns.getText().split(","));
+        } else {
+            inf.setPartialcolumns(null);
+        }
         inf.setEnableupsertdelete(wEnableUpsertDelete.getSelection());
         inf.setUpsertOrDelete(wUpsertorDelete.getText());
 
@@ -1013,8 +1017,11 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
             inf.getFieldTable()[i] = item.getText(1);
             inf.getFieldStream()[i] = item.getText(2);
         }
-
-        inf.setHttpurl(Arrays.asList(wHttpurl.getText().split(";")));
+        if (wHttpurl.getText() != null && wHttpurl.getText().length() != 0) {
+            inf.setHttpurl(Arrays.asList(wHttpurl.getText().split(";")));
+        } else {
+            inf.setHttpurl(null);
+        }
         inf.setJdbcurl(wJdbcUrl.getText());
         inf.setDatabasename(wDatabaseName.getText());
         inf.setTablename(wTableName.getText());

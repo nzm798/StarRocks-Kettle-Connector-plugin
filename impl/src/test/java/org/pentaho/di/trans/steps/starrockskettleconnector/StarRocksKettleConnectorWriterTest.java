@@ -50,7 +50,7 @@ public class StarRocksKettleConnectorWriterTest {
         vars.put("tablename", "student");
         vars.put("user", "root");
         vars.put("password", "");
-        vars.put("format", "JSON");
+        vars.put("format", "CSV");
         transMeta.injectVariables(vars);
 
         lmeta = new StarRocksKettleConnectorMeta();
@@ -68,16 +68,24 @@ public class StarRocksKettleConnectorWriterTest {
         lmeta.setTimeout(600);
         lmeta.setMaxFilterRatio(0);
         lmeta.setColumnSeparator("\t");
-        lmeta.setJsonpaths("[\"$.id\", \"$.name\",\"$.score\"]");
+        lmeta.setPartialupdate(true);
+        lmeta.setPartialcolumns(new String[]{"id","name"});
+        // lmeta.setJsonpaths("[\"$.id\", \"$.name\",\"$.score\"]");
 
-        lmeta.setFieldStream(new String[]{"id","name","score"});
-        lmeta.setFieldTable(new String[]{"id","name","score"});
+//        lmeta.setFieldStream(new String[]{"id","name","score"});
+//        lmeta.setFieldTable(new String[]{"id","name","score"});
+//        ValueMetaInteger vi=new ValueMetaInteger("id");
+//        ValueMetaString vs=new ValueMetaString("name");
+//        ValueMetaInteger vn=new ValueMetaInteger("score");
+//        rm.addValueMeta(vi);
+//        rm.addValueMeta(vs);
+//        rm.addValueMeta(vn);
+        lmeta.setFieldStream(new String[]{"id","name"});
+        lmeta.setFieldTable(new String[]{"id","name"});
         ValueMetaInteger vi=new ValueMetaInteger("id");
         ValueMetaString vs=new ValueMetaString("name");
-        ValueMetaInteger vn=new ValueMetaInteger("score");
         rm.addValueMeta(vi);
         rm.addValueMeta(vs);
-        rm.addValueMeta(vn);
 
         ldata = new StarRocksKettleConnectorData();
         PluginRegistry plugReg = PluginRegistry.getInstance();

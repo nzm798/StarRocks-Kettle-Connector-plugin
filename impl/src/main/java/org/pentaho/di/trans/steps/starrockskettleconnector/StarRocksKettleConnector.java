@@ -44,9 +44,9 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
         data = (StarRocksKettleConnectorData) sdi;
 
         try {
-            //Long a = new Long(1);
+            // Long a = new Long(8);
             //Long b = new Long(80);
-            //Object[] r = new Object[]{(Object) a, (Object) "Lily", (Object) b};
+            // Object[] r = new Object[]{(Object) a, (Object) "NIUNIU"};
             Object[] r = getRow(); // Get row from input rowset & set row busy!
             if (r == null) { // no more input to be expected...
                 setOutputDone();
@@ -72,7 +72,6 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 }
                 data.serializer = getSerializer(meta);
             }
-
             String serializedValue = data.serializer.serialize(transform(r, meta.getEnableUpsertDelete()));
             data.streamLoadManager.write(null, data.databasename, data.tablename, serializedValue);
             // TODO:实现写入刷新
@@ -248,7 +247,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
 
         if (super.init(smi, sdi)) {
             // Add columns properties to all to prevent changes in the order of the fields.
-            if (meta.getPartialUpdate()) {
+            if (meta.getPartialUpdate() && meta.getPartialcolumns() != null && meta.getPartialcolumns().length != 0) {
                 data.columns = new String[meta.getPartialcolumns().length];
                 System.arraycopy(meta.getPartialcolumns(), 0, data.columns, 0, meta.getPartialcolumns().length);
             } else {
@@ -310,9 +309,6 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 .table(meta.getTablename())
                 .streamLoadDataFormat(dataFormat)
                 .enableUpsertDelete(meta.getEnableUpsertDelete());
-        if (meta.getPartialUpdate()) {
-            defaultTablePropertiesBuilder.addProperty("partial_update", "true");
-        }
         // Add the '__op' field
         if (data.columns != null) {
             // don't need to add "columns" header in following cases
@@ -360,6 +356,11 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
             }
             if (meta.getJsonpaths() != null && meta.getJsonpaths().length() != 0) {
                 streamLoadProperties.put("jsonpaths", meta.getJsonpaths());
+            }
+        }
+        if (meta.getPartialUpdate()) {
+            if (!streamLoadProperties.containsKey("partial_update")) {
+                streamLoadProperties.put("partial_update", "true");
             }
         }
 
