@@ -65,59 +65,31 @@ StarRocks Kettle Connector实现了Kettle的一个插件，它用于在StarRocks
 
 ## 参数说明
 
-| 参数                                            | 是否必填 | 默认值                     | 数据类型 | 描述                                                                                                                                                                                                                          |
-| :---------------------------------------------- | -------- | -------------------------- | -------- |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 步骤名称-Step name                              | 是       | StarRocks Kettle Connector | String   | 该步骤名称                                                                                                                                                                                                                       |
-| Http Url                                        | 是       | 无                         | String   | FE 的 HTTP Server 连接地址。格式为 `<fe_host1>:<fe_http_port1>;<fe_host2>:<fe_http_port2>`，可以提供多个地址，使用英文分号 (;) 分隔。例如 `192.168.xxx.xxx:8030;192.168.xxx.xxx:8030`。                                                                    |
-| JDBC Url                                        | 是       | 无                         | String   | FE 的 MySQL Server 连接地址。格式为 `jdbc:mysql://<fe_host>:<fe_query_port>`。                                                                                                                                                        |
-| 数据库-DataBase Name                            | 是       | 无                         | String   | StarRocks 目标数据库的名称。                                                                                                                                                                                                         |
-| 目标表-Table Name                               | 是       | 无                         | String   | StarRocks 目标数据表的名称。                                                                                                                                                                                                         |
-| 用户名-User                                     | 是       | 无                         | String   | 用于访问 StarRocks 集群的用户名。该账号需具备 StarRocks 目标数据表的写权限。有关用户权限的说明，请参见[用户权限](https://docs.starrocks.io/zh-cn/latest/administration/User_privilege)。                                                                                 |
-| 密码-Password                                   | 否       | 无                         | String   | 用于访问 StarRocks 集群的用户密码。若没有密码则不用填写。                                                                                                                                                                                          |
-| 格式-Format                                     | 是       | CSV                        | String   | Stream Load 导入时的数据格式。取值为 `CSV` 或者 `JSON`。                                                                                                                                                                                   |
-| 列分割符-Column Sepatator                       | 否       | \t                         | String   | 用于指定源数据文件中的列分隔符。如果不指定该参数，则默认为 `\t`，即 Tab。必须确保这里指定的列分隔符与源数据文件中的列分隔符一致。该参数当选择CSV格式的时候必须填写。<br />**说明**<br />StarRocks 支持设置长度最大不超过 50 个字节的 UTF-8 编码字符串作为列分隔符，包括常见的逗号 (,)、Tab 和 Pipe (）                                         |
-| Json Paths                                      | 否       | 无                         | String   | 用于指定待导入的字段的名称。仅在使用匹配模式导入 JSON 数据时需要指定该参数。当格式选择JSON时填写该参数。参见[导入 JSON 数据时配置列映射关系](https://docs.starrocks.io/zh-cn/latest/sql-reference/sql-statements/data-manipulation/STREAM LOAD#导入-json-数据时配置列映射关系).                   |
-| 一次导入最大字节-Max Bytes                      | 否       | 94371840(90M)              | String   | 数据攒批的大小，达到该阈值后将数据通过 Stream Load 批量写入 StarRocks。取值范围：[64MB, 10GB]。                                                                                                                                                           |
-| 刷新频率-Scanning Frequency                     | 否       | 50                         | String   | 数据刷新的时间，每隔多长时间进行一次数据刷新写入。参数单位为毫秒，取值大于等于50毫秒。                                                                                                                                                                                |
-| 导入作业最大容错率-Max Filter Ratio             | 否       | 0                          | String   | 用于指定导入作业的最大容错率，即导入作业能够容忍的因数据质量不合格而过滤掉的数据行所占的最大比例。取值范围：0~1。默认值：0。更多说明，请参见 [STREAM LOAD](https://docs.starrocks.io/zh-cn/latest/sql-reference/sql-statements/data-manipulation/STREAM LOAD#opt_properties)。                   |
-| StarRocks连接超时时间-Connect Timeout           | 否       | 1000                       | String   | 连接 `load-url` 的超时时间。取值范围：[100, 60000]。                                                                                                                                                                                      |
-| Stream Load载入数据超时时间-Stream Load Timeout | 否       | 600                        | String   | Stream Load 超时时间，单位为秒。                                                                                                                                                                                                      |
-| 部分导入-Partial Update                         | 否       | 否                         |          | StarRocks v2.2 起，主键模型表支持部分更新，可以选择只更新部分指定的列。若勾选实现部分导入需要在“部分导入行”中填写要导入的列名。                                                                                                                                                    |
-| 部分导入行-Partial Update Columns               | 否       | 无                         | String   | 需要部分更新的列名。需要填写所要写入的目标表中对应的列名。各列命之间要以英文逗号隔开“,”，例如：col1,col2col3                                                                                                                                                              |
+| 参数                                            | 是否必填 | 默认值                     | 数据类型 | 描述                                                         |
+| :---------------------------------------------- | -------- | -------------------------- | -------- | ------------------------------------------------------------ |
+| 步骤名称-Step name                              | 是       | StarRocks Kettle Connector | String   | 该步骤名称                                                   |
+| Http Url                                        | 是       | 无                         | String   | FE 的 HTTP Server 连接地址。格式为 `<fe_host1>:<fe_http_port1>;<fe_host2>:<fe_http_port2>`，可以提供多个地址，使用英文分号 (;) 分隔。例如 `192.168.xxx.xxx:8030;192.168.xxx.xxx:8030`。 |
+| JDBC Url                                        | 是       | 无                         | String   | FE 的 MySQL Server 连接地址。格式为 `jdbc:mysql://<fe_host>:<fe_query_port>`。 |
+| 数据库-DataBase Name                            | 是       | 无                         | String   | StarRocks 目标数据库的名称。                                 |
+| 目标表-Table Name                               | 是       | 无                         | String   | StarRocks 目标数据表的名称。                                 |
+| 用户名-User                                     | 是       | 无                         | String   | 用于访问 StarRocks 集群的用户名。该账号需具备 StarRocks 目标数据表的写权限。有关用户权限的说明，请参见[用户权限](https://docs.starrocks.io/zh-cn/latest/administration/User_privilege)。 |
+| 密码-Password                                   | 否       | 无                         | String   | 用于访问 StarRocks 集群的用户密码。若没有密码则不用填写。    |
+| 格式-Format                                     | 是       | CSV                        | String   | Stream Load 导入时的数据格式。取值为 `CSV` 或者 `JSON`。     |
+| 列分割符-Column Sepatator                       | 否       | \t                         | String   | 用于指定源数据文件中的列分隔符。如果不指定该参数，则默认为 `\t`，即 Tab。必须确保这里指定的列分隔符与源数据文件中的列分隔符一致。该参数当选择CSV格式的时候必须填写。<br />**说明**<br />StarRocks 支持设置长度最大不超过 50 个字节的 UTF-8 编码字符串作为列分隔符，包括常见的逗号 (,)、Tab 和 Pipe (） |
+| Json Paths                                      | 否       | 无                         | String   | 用于指定待导入的字段的名称。仅在使用匹配模式导入 JSON 数据时需要指定该参数。当格式选择JSON时填写该参数。参见[导入 JSON 数据时配置列映射关系](https://docs.starrocks.io/zh-cn/latest/sql-reference/sql-statements/data-manipulation/STREAM LOAD#导入-json-数据时配置列映射关系). |
+| 一次导入最大字节-Max Bytes                      | 否       | 94371840(90M)              | String   | 数据攒批的大小，达到该阈值后将数据通过 Stream Load 批量写入 StarRocks。取值范围：[64MB, 10GB]。 |
+| 刷新频率-Scanning Frequency                     | 否       | 50                         | String   | 数据刷新的时间，每隔多长时间进行一次数据刷新写入。参数单位为毫秒，取值大于等于50毫秒。 |
+| 导入作业最大容错率-Max Filter Ratio             | 否       | 0                          | String   | 用于指定导入作业的最大容错率，即导入作业能够容忍的因数据质量不合格而过滤掉的数据行所占的最大比例。取值范围：0~1。默认值：0。更多说明，请参见 [STREAM LOAD](https://docs.starrocks.io/zh-cn/latest/sql-reference/sql-statements/data-manipulation/STREAM LOAD#opt_properties)。 |
+| StarRocks连接超时时间-Connect Timeout           | 否       | 1000                       | String   | 连接 `load-url` 的超时时间。取值范围：[100, 60000]。         |
+| Stream Load载入数据超时时间-Stream Load Timeout | 否       | 600                        | String   | Stream Load 超时时间，单位为秒。                             |
+| 部分导入-Partial Update                         | 否       | 否                         |          | StarRocks v2.2 起，主键模型表支持部分更新，可以选择只更新部分指定的列。若勾选实现部分导入需要在“部分导入行”中填写要导入的列名。 |
+| 部分导入行-Partial Update Columns               | 否       | 无                         | String   | 需要部分更新的列名。需要填写所要写入的目标表中对应的列名。各列命之间要以英文逗号隔开`,`，例如：`col1,col2,col3` |
 | 是否支持更新和删除-Enable Upsert Delete         | 否       | 无                         |          | StarRocks 目前支持 UPSERT 和 DELETE 操作，不支持一次作业区分UPSERT和DELETE，只能对一次导入单独实现UPSERT和DELETE。<br />  **UPSERT**: 该操作用于插入或更新数据。如果数据已存在（基于主键/唯一键），它将更新该数据；如果数据不存在，它将插入新数据。<br /> **DELETE**: 该操作用于删除符合条件的数据记录。需要指定删除的条件，满足该条件的所有记录都将被删除。 |
-| Upsert or Delete                                | 否       | 无                         | String   | 当勾选“是否支持更新和删除”时需要选择是执行UPSERT或DELETE操作。若未选择则不执行更新或删除操作。                                                                                                                                                                      |
-| 表字段-Table field                              | 否       | 无                         | String   | StarRocks目标表中各列的名称。需要与流字段一一对应。                                                                                                                                                                                              |
-| 流字段-Stream field                             | 否       | 无                         | String   | 上一步骤传输过来的数据列名称。从上一步骤传递的数据列名称和类型必须与StarRocks目标表的数据格式和大小完全匹配。                                                                                                                                                                 |
+| Upsert or Delete                                | 否       | 无                         | String   | 当勾选“是否支持更新和删除”时需要选择是执行UPSERT或DELETE操作。若未选择则不执行更新或删除操作。 |
+| 表字段-Table field                              | 否       | 无                         | String   | StarRocks目标表中各列的名称。需要与流字段一一对应。          |
+| 流字段-Stream field                             | 否       | 无                         | String   | 上一步骤传输过来的数据列名称。从上一步骤传递的数据列名称和类型必须与StarRocks目标表的数据格式和大小完全匹配。 |
 
-根据插件ui提示输入StarRocks连接配置信息。
 
-```Java
-'http-url'='fe_ip1:8030,fe_ip2:8030,fe_ip3:8030'
-'jdbc-url'='jdbc:mysql://fe_ip:9030'
-'username'='root'
-'password'=''
-'database-name'='kettle_test'
-'table-name'='kettle_test'
-// The format of the data to be loaded. The value can be CSV or JSON. 
-// The default is CSV. 
-'format'='CSV'
-// Starting from version 2.4, partial column updates in the primary key model are supported. You can specify the columns to be updated through the following two attributes, 
-// and you need to explicitly add the '__op' column at the end of 'partial-update-columns','k1,k2,k3'.
-'partial-update'='true'
-'partial-update-columns'='k1,k2,k3'
-// The maximum size of data that can be loaded into StarRocks at a time. 
-// Valid values: 64 MB to 10 GB. 
-'maxbytes'=94371840
-// Specifies the maximum fault tolerance rate for the import job, which is the maximum 
-// proportion of data rows that the import job can tolerate filtered out due to substandard data quality. 
-// Value range: 0~1. Default value: 0.
-'max_filter_ratio'=0
-// Timeout period for connecting to the load-url. 
-// Valid values: 100 to 60000
-'connect-timeout'=1000
-// Stream Load timeout period, in seconds.
-'timeout'=600
-```
 
 ## StarRocks-Kettle数据类型对应关系
 
@@ -326,7 +298,7 @@ StarRocks 还支持部分更新 (Partial Update) 和条件更新 (Conditional Up
 
 ##### UPSERT
 
-* 准备数据文件
+1. 准备数据文件
 
 在本地文件系统创建一个 CSV 格式的数据文件 `example1.csv`。文件包含三列，分别代表用户 ID、用户姓名和用户得分，如下所示：
 
@@ -335,7 +307,7 @@ StarRocks 还支持部分更新 (Partial Update) 和条件更新 (Conditional Up
 5,Jeson,0
 ~~~
 
-* 准备 StarRocks 表。
+2. 准备 StarRocks 表。
 
 在数据库 `kettle_test` 中创建一张名为 `table1` 的主键模型表。表包含 `id`、`name` 和 `score` 三列，分别代表用户 ID、用户名称和用户得分，主键为 `id` 列，如下所示：
 
@@ -366,7 +338,7 @@ StarRocks > select * from student;
 4 rows in set (0.01 sec)
 ~~~
 
-* UPSERT数据
+3. UPSERT数据
 
 通过导入，把 `example1.csv` 文件中 `id` 为 `1` 的数据更新到 `student` 表中，并且把 `example1.csv` 文件中 `id` 为 `5` 的数据插入到 `student` 表中。
 
@@ -374,7 +346,7 @@ StarRocks > select * from student;
 
 ![](image/18.jpg)
 
-* 运行并查询数据
+4. 运行并查询数据
 
 导入完成后，查询`student`表的数据，如下所示：
 
@@ -398,7 +370,7 @@ StarRocks > select * from student;
 
 ##### DELETE
 
-* 准备数据文件
+1. 准备数据文件
 
 在本地文件系统创建一个 CSV 格式的数据文件 `example2.csv`。文件包含三列，分别代表用户 ID、用户姓名和用户得分，如下所示：
 
@@ -406,7 +378,7 @@ StarRocks > select * from student;
 2,Rose,23
 ~~~
 
-* 准备StarRocks表
+2. 准备StarRocks表
 
 使用上一步创建的数据库 `kettle_test` 中名为 `student` 的主键模型表。表包含 `id`、`name` 和 `score` 三列，分别代表用户 ID、用户名称和用户得分，主键为 `id` 列，其中数据如下所示：
 
@@ -424,13 +396,13 @@ StarRocks > select * from student;
 5 rows in set (0.00 sec)
 ~~~
 
-* 导入数据
+4. 导入数据
 
 通过导入，把 `example2.csv` 文件中 `id` 为 `2` 的数据从 `student` 表中删除。
 
 ![](image/19.jpg)
 
-* 查询数据
+5. 查询数据
 
 导入完成后，查询 `table2` 表的数据，如下所示：
 
@@ -455,7 +427,7 @@ StarRocks > select * from student;
 
 自 StarRocks v2.2 起，主键模型表支持部分更新 (Partial Update)，您可以选择只更新部分指定的列。这里以 CSV 格式的数据文件为例进行说明。
 
-* 准备数据文件
+1. 准备数据文件
 
 在本地文件系统创建一个 CSV 格式的数据文件 `example3.csv`。文件包含两列，分别代表用户 ID 和用户姓名，如下所示：
 
@@ -464,7 +436,7 @@ StarRocks > select * from student;
 7,Appolo
 ~~~
 
-* 准备StarRocks表
+2. 准备StarRocks表
 
 使用上一步创建的数据库 `kettle_test` 中名为 `student` 的主键模型表。表包含 `id`、`name` 和 `score` 三列，分别代表用户 ID、用户名称和用户得分，主键为 `id` 列，其中数据如下所示：
 
@@ -481,7 +453,7 @@ StarRocks > select * from student;
 4 rows in set (0.00 sec)
 ~~~
 
-* 导入数据
+3. 导入数据
 
 通过导入，把 `example3.csv` 里的两列数据更新到 `student` 表的 `id` 和 `name` 两列。
 
@@ -489,7 +461,7 @@ StarRocks > select * from student;
 
 ![](image/20.jpg)
 
-* 查询数据
+4. 查询数据
 
 导入完成后，查询 `student` 表的数据，如下所示：
 
@@ -509,6 +481,103 @@ StarRocks > select * from student;
 ~~~
 
 从查询结果可以看到，`example3.csv` 文件中 `id` 为 `6`和`7` 的数据已经更新到 `student` 表中，并且 `example3.csv` 文件中 `id` 为 `6` 和 `7` 的数据已经插入到 `student` 表中。
+
+
+
+### 各类型数据导入格式
+
+1. 数据准备
+
+在本地文件系统创建一个 CSV 格式的数据文件 `example4.csv`。如下所示：
+
+~~~mysql
+id,recruit_date,region_num,num_plate,tel,password,name,profile,hobby,leave_time,channel,income,account,ispass
+1,2022-01-01,-50,-2500,-2000000000,12345678901234567890,John Doe,Software Engineer,Reading,2022-01-01 08:00:00,1.23,1234.5678,1000.1234,true
+2,2022-01-02,-40,-2501,-2000000001,12345678901234567891,Jane Smith,Data Scientist,Writing,2022-01-02 09:00:00,2.34,2345.6789,1100.1234,false
+3,2022-01-03,-30,-2502,-2000000002,12345678901234567892,Robert Brown,Web Developer,Cycling,2022-01-03 10:00:00,3.45,3456.7890,1200.1234,true
+4,2022-01-04,-20,-2503,-2000000003,12345678901234567893,Emily Johnson,Database Admin,Swimming,2022-01-04 11:00:00,4.56,4567.8901,1300.1234,false
+5,2022-01-05,-10,-2504,-2000000004,12345678901234567894,Michael Lee,Network Engineer,Hiking,2022-01-05 12:00:00,5.67,5678.9012,1400.1234,true
+6,2022-01-06,0,-2505,-2000000005,12345678901234567895,Sarah Taylor,Security Analyst,Photography,2022-01-06 13:00:00,6.78,6789.0123,1500.1234,false
+7,2022-01-07,10,-2506,-2000000006,12345678901234567896,William Davis,Systems Analyst,Dancing,2022-01-07 14:00:00,7.89,7890.1234,1600.1234,true
+8,2022-01-08,20,-2507,-2000000007,12345678901234567897,Jessica Martinez,UX Designer,Painting,2022-01-08 15:00:00,8.90,8901.2345,1700.1234,false
+9,2022-01-09,30,-2508,-2000000008,12345678901234567898,David Wilson,Product Manager,Music,2022-01-09 16:00:00,9.01,9012.3456,1800.1234,true
+10,2022-01-10,40,-2509,-2000000009,12345678901234567899,Mary White,HR Specialist,Traveling,2022-01-10 17:00:00,10.12,1012.4567,1900.1234,false
+~~~
+
+2. StarRocks数据库建立
+
+在数据库 `kettle_test` 中创建一张名为 `detailDemo` 的主键模型表。主键为 `id` 列，如下所示：
+
+~~~mysql
+use kettle_test;
+CREATE TABLE IF NOT EXISTS `detailDemo` (
+    `id`            BIGINT         COMMENT "range [-2^63 + 1 ~ 2^63 - 1]",
+    `recruit_date`  DATE           NOT NULL COMMENT "YYYY-MM-DD",
+    `region_num`    TINYINT        COMMENT "range [-128, 127]",
+    `num_plate`     SMALLINT       COMMENT "range [-32768, 32767] ",
+    `tel`           INT            COMMENT "range [-2147483648, 2147483647]",
+    `password`      LARGEINT       COMMENT "range [-2^127 + 1 ~ 2^127 - 1]",
+    `name`          CHAR(20)       NOT NULL COMMENT "range char(m),m in (1-255)",
+    `profile`       VARCHAR(500)   NOT NULL COMMENT "upper limit value 1048576 bytes",
+    `hobby`         STRING         NOT NULL COMMENT "upper limit value 65533 bytes",
+    `leave_time`    DATETIME       COMMENT "YYYY-MM-DD HH:MM:SS",
+    `channel`       FLOAT          COMMENT "4 bytes",
+    `income`        DOUBLE         COMMENT "8 bytes",
+    `account`       DECIMAL(12,4)  COMMENT "",
+    `ispass`        BOOLEAN        COMMENT "true/false"
+)ENGINE=OLAP
+PRIMARY KEY(`id`)
+DISTRIBUTED BY HASH(`id`);
+~~~
+
+3. 配置Kettle对应类型
+
+根据上述数据类型对应表更改，导入数据的数据类型。
+
+| id           | Integer   |
+| ------------ | --------- |
+| recruit_date | Date      |
+| region_num   | Integer   |
+| num_plate    | Integer   |
+| tel          | Integer   |
+| password     | BigNumber |
+| name         | String    |
+| profile      | String    |
+| hobby        | String    |
+| leave_time   | Timestamp |
+| channel      | Number    |
+| income       | Number    |
+| account      | BigNumber |
+| ispass       | Boolean   |
+
+![](image/21.jpg)
+
+4. 导入数据
+
+StarRocks参数设置同[导入CSV格式的数据](# 导入CSV格式的数据)配置相同。
+
+导入完成后，查询 `detailDemo` 表的数据，如下所示：
+
+~~~mysql
+StarRocks > select * from detailDemo;
++------+--------------+------------+-----------+-------------+----------------------+------------------+-------------------+-------------+---------------------+---------+-----------+-----------+--------+
+| id   | recruit_date | region_num | num_plate | tel         | password             | name             | profile           | hobby       | leave_time          | channel | income    | account   | ispass |
++------+--------------+------------+-----------+-------------+----------------------+------------------+-------------------+-------------+---------------------+---------+-----------+-----------+--------+
+|    1 | 2022-01-01   |        -50 |     -2500 | -2000000000 | 12345678901234567890 | John Doe         | Software Engineer | Reading     | 2022-01-01 08:00:00 |    1.23 | 1234.5678 | 1000.1234 |      1 |
+|    6 | 2022-01-06   |          0 |     -2505 | -2000000005 | 12345678901234567895 | Sarah Taylor     | Security Analyst  | Photography | 2022-01-06 13:00:00 |    6.78 | 6789.0123 | 1500.1234 |      0 |
+|    8 | 2022-01-08   |         20 |     -2507 | -2000000007 | 12345678901234567897 | Jessica Martinez | UX Designer       | Painting    | 2022-01-08 15:00:00 |     8.9 | 8901.2345 | 1700.1234 |      0 |
+|    7 | 2022-01-07   |         10 |     -2506 | -2000000006 | 12345678901234567896 | William Davis    | Systems Analyst   | Dancing     | 2022-01-07 14:00:00 |    7.89 | 7890.1234 | 1600.1234 |      1 |
+|    9 | 2022-01-09   |         30 |     -2508 | -2000000008 | 12345678901234567898 | David Wilson     | Product Manager   | Music       | 2022-01-09 16:00:00 |    9.01 | 9012.3456 | 1800.1234 |      1 |
+|   10 | 2022-01-10   |         40 |     -2509 | -2000000009 | 12345678901234567899 | Mary White       | HR Specialist     | Traveling   | 2022-01-10 17:00:00 |   10.12 | 1012.4567 | 1900.1234 |      0 |
+|    4 | 2022-01-04   |        -20 |     -2503 | -2000000003 | 12345678901234567893 | Emily Johnson    | Database Admin    | Swimming    | 2022-01-04 11:00:00 |    4.56 | 4567.8901 | 1300.1234 |      0 |
+|    2 | 2022-01-02   |        -40 |     -2501 | -2000000001 | 12345678901234567891 | Jane Smith       | Data Scientist    | Writing     | 2022-01-02 09:00:00 |    2.34 | 2345.6789 | 1100.1234 |      0 |
+|    3 | 2022-01-03   |        -30 |     -2502 | -2000000002 | 12345678901234567892 | Robert Brown     | Web Developer     | Cycling     | 2022-01-03 10:00:00 |    3.45 |  3456.789 | 1200.1234 |      1 |
+|    5 | 2022-01-05   |        -10 |     -2504 | -2000000004 | 12345678901234567894 | Michael Lee      | Network Engineer  | Hiking      | 2022-01-05 12:00:00 |    5.67 | 5678.9012 | 1400.1234 |      1 |
++------+--------------+------------+-----------+-------------+----------------------+------------------+-------------------+-------------+---------------------+---------+-----------+-----------+--------+
+10 rows in set (0.01 sec)
+~~~
+
+
 
 # Limitation
 

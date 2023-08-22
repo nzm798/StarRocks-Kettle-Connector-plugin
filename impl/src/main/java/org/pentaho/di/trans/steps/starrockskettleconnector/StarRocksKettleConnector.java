@@ -16,6 +16,7 @@ import org.pentaho.di.trans.steps.starrockskettleconnector.starrocks.*;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -80,7 +81,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
             return true;
 
         } catch (Exception e) {
-            logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Log.ErrorInStep"));
+            logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Log.ErrorInStep") + e);
             setErrors(1);
             stopAll();
             setOutputDone();
@@ -91,12 +92,10 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
     private void closeOutput() throws Exception {
         data.streamLoadManager.flush();
         data.streamLoadManager.close();
-
         if (data.streamLoadManager.getException() != null) {
             logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.FailFlush"), data.streamLoadManager.getException());
         }
         data.streamLoadManager = null;
-
     }
 
     // Data type conversion.
@@ -148,8 +147,8 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 case ValueMetaInterface.TYPE_BOOLEAN:
                     Boolean boolenaValue;
                     if (sourceMeta.isStorageBinaryString()) {
-                        String binaryBoolean = (String) r;
-                        boolenaValue = binaryBoolean.equals("1");
+                        String binaryBoolean = new String((byte[]) r, StandardCharsets.UTF_8);
+                        boolenaValue = binaryBoolean.equals("1") || binaryBoolean.equals("true") || binaryBoolean.equals("True");
                     } else {
                         boolenaValue = sourceMeta.getBoolean(r);
                     }
@@ -187,39 +186,42 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                     }
                     return decimalValue; // BigDecimal string representation is compatible with DECIMAL
                 case ValueMetaInterface.TYPE_DATE:
+                    SimpleDateFormat sourceDateFormatter = sourceMeta.getDateFormat();
+                    SimpleDateFormat dateFormatter = null;
+                    if (type == StarRocksDataType.DATE) {
+                        // StarRocks DATE type format: 'yyyy-MM-dd'
+                        dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+                    } else {
+                        // StarRocks DATETIME type format: 'yyyy-MM-dd HH:mm:ss'
+                        dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    }
                     Date dateValue = null;
                     if (sourceMeta.isStorageBinaryString()) {
-                        Long milliseconds = Long.parseLong(new String((byte[]) r, StandardCharsets.UTF_8));
-                        dateValue = new Date(milliseconds);
+                        String dateStr = new String((byte[]) r, StandardCharsets.UTF_8);
+                        dateValue = sourceDateFormatter.parse(dateStr);
                     } else {
                         dateValue = sourceMeta.getDate(r);
                     }
-//                    SimpleDateFormat dateFormatter;
-//                    if (type == StarRocksDataType.DATE) {
-//                        // StarRocks DATE type format: 'yyyy-MM-dd'
-//                        dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
-//                    } else {
-//                        // StarRocks DATETIME type format: 'yyyy-MM-dd HH:mm:ss'
-//                        dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-//                    }
-                    return dateValue;
+
+                    return dateFormatter.format(dateValue);
                 case ValueMetaInterface.TYPE_TIMESTAMP:
+                    SimpleDateFormat sourceTimestampFormatter = sourceMeta.getDateFormat();
+                    SimpleDateFormat timeStampFormatter = null;
+                    if (type == StarRocksDataType.DATE) {
+                        // StarRocks DATE type format: 'yyyy-MM-dd'
+                        timeStampFormatter = new SimpleDateFormat("yyyy-MM-dd");
+                    } else {
+                        // StarRocks DATETIME type format: 'yyyy-MM-dd HH:mm:ss'
+                        timeStampFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    }
                     java.sql.Timestamp timestampValue = null;
                     if (sourceMeta.isStorageBinaryString()) {
-                        Long milliseconds = Long.parseLong(new String((byte[]) r, StandardCharsets.UTF_8));
-                        timestampValue = new java.sql.Timestamp(milliseconds);
+                        String timestampStr = new String((byte[]) r, StandardCharsets.UTF_8);
+                        timestampValue = new java.sql.Timestamp(sourceTimestampFormatter.parse(timestampStr).getTime());
                     } else {
                         timestampValue = (Timestamp) r;
                     }
-//                    SimpleDateFormat timestampFormat;
-//                    if (type == StarRocksDataType.DATE) {
-//                        // StarRocks DATE type format: 'yyyy-MM-dd'
-//                        timestampFormat = new SimpleDateFormat("yyyy-MM-dd");
-//                    } else {
-//                        // StarRocks DATETIME type format: 'yyyy-MM-dd HH:mm:ss'
-//                        timestampFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-//                    }
-                    return timestampValue;
+                    return timeStampFormatter.format(timestampValue);
                 case ValueMetaInterface.TYPE_BINARY:
                     throw new KettleException((BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.UnSupportBinary") + r.toString()));
 
@@ -395,21 +397,17 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
 
         try {
             if (data.streamLoadManager != null) {
-
                 data.streamLoadManager.flush();
-                data.streamLoadManager.close();
-
                 if (data.streamLoadManager.getException() != null) {
                     logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.FailFlush"), data.streamLoadManager.getException());
                 }
-
+                data.streamLoadManager.close();
                 data.streamLoadManager = null;
             }
         } catch (Exception e) {
             setErrors(1L);
             logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.UNEXPECTEDERRORCLOSING"), e);
         }
-
         super.dispose(smi, sdi);
     }
 

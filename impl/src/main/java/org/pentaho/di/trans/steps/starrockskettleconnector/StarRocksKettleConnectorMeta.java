@@ -93,6 +93,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
 
     /**
      * The format of the data to be loaded. The value can be CSV or JSON.
+     * The default is CSV.
      */
     @Injection(name = "FORMAT")
     private String format;
@@ -109,18 +110,23 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
 
     /**
      * The maximum size of data that can be loaded into StarRocks at a time.
+     * Valid values: 64 MB to 10 GB.
      */
     @Injection(name = "MAXBYTES")
     private long maxbytes;
 
     /**
      * The maximum fault tolerance rate for the import job.
+     * Specifies the maximum fault tolerance rate for the import job, which is the maximum
+     * proportion of data rows that the import job can tolerate filtered out due to substandard data quality.
+     * Value range: 0~1. Default value: 0.
      */
     @Injection(name = "MAXFILTERRATIO")
     private float max_filter_ratio;
 
     /**
      * Timeout period for connecting to the load-url.
+     * Valid values: 100 to 60000
      */
     @Injection(name = "CONNECT_TIMEOUT")
     private int connecttimeout;

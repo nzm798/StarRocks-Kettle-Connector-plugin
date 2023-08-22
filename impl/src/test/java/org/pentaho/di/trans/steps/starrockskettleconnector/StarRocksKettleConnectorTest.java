@@ -167,7 +167,7 @@ public class StarRocksKettleConnectorTest {
         rm.addValueMeta(vd);
         SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
         Date date = dateFormatter.parse("2022-08-05");
-        assertEquals(date, connector.typeConvertion(rm.getValueMeta(5), StarRocksDataType.DATE, date));
+        assertEquals("2022-08-05", connector.typeConvertion(rm.getValueMeta(5), StarRocksDataType.DATE, date));
 
         // Test for Timestamp
         ValueMetaTimestamp vt=new ValueMetaTimestamp("timestamp");
@@ -175,7 +175,7 @@ public class StarRocksKettleConnectorTest {
         SimpleDateFormat datetimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date dateTime = datetimeFormat.parse("2022-08-05 12:34:56");
         Timestamp timestamp=new Timestamp(dateTime.getTime());
-        assertEquals(timestamp, connector.typeConvertion(rm.getValueMeta(6), StarRocksDataType.DATETIME, timestamp));
+        assertEquals("2022-08-05 12:34:56", connector.typeConvertion(rm.getValueMeta(6), StarRocksDataType.DATETIME, timestamp));
 
         // Test for InetAddress
         ValueMetaInternetAddress vint=new ValueMetaInternetAddress("inetaddress");
