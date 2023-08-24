@@ -263,7 +263,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 meta.setStarRocksQueryVisitor(new StarRocksQueryVisitor(jdbcConnectionProvider, meta.getDatabasename(), meta.getTablename()));
             }
             try {
-                data.streamLoadManager = new StreamLoadManagerV2(getProperties(meta, data), true);
+                data.streamLoadManager = new StreamLoadManagerV2(getProperties(meta, data), true);  // TODO
                 data.streamLoadManager.init();
             } catch (Exception e) {
                 logError(BaseMessages.getString(PKG, "StarRocksKettleConnector.Message.FailConnManager"), e);
