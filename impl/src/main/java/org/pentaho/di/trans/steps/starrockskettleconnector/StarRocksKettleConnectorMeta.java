@@ -37,6 +37,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.apache.http.protocol.HttpRequestExecutor.DEFAULT_WAIT_FOR_CONTINUE;
+
 @Step(id = "StarRocksKettleConnector", name = "BaseStep.TypeLongDesc.StarRocksKettleConnector",
         description = "BaseStep.TypeTooltipDesc.StarRocksKettleConnector",
         categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Bulk",
@@ -50,6 +52,10 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
 
     private static final long KILO_BYTES_SCALE = 1024L;
     private static final long MEGA_BYTES_SCALE = KILO_BYTES_SCALE * KILO_BYTES_SCALE;
+    private static final long GIGA_BYTES_SCALE = MEGA_BYTES_SCALE * KILO_BYTES_SCALE;
+    private static final int WRITE_IO_THREAD_COUNT = 2;
+    private static final int WAIT_FOR_CONTINUE_TIMEOUT = 30000;
+
 
     /**
      * Url of the stream load, if you don't specify the http/https prefix, the default http. like: `fe_ip1:http_port;http://fe_ip2:http_port;https://fe_nlb`.
@@ -475,6 +481,29 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         this.scanningFrequency = scanningFrequency;
     }
 
+    /**
+     * @return Data chunk size in a http request for stream load.
+     */
+    public long getChunkLimit() {
+        return 3 * GIGA_BYTES_SCALE;
+    }
+    /**
+     * @return Stream load thread count.
+     */
+    public int getIoThreadCount() {
+        return WRITE_IO_THREAD_COUNT;
+    }
+
+    /**
+     * @return Timeout in millisecond to wait for 100-continue response for http client.
+     */
+    public int getWaitForContinueTimeout() {
+        int waitForContinueTimeoutMs = WAIT_FOR_CONTINUE_TIMEOUT;
+        if (waitForContinueTimeoutMs < DEFAULT_WAIT_FOR_CONTINUE) {
+            return DEFAULT_WAIT_FOR_CONTINUE;
+        }
+        return Math.min(waitForContinueTimeoutMs, 600000);
+    }
     public void setDefault() {
         fieldTable = null;
         httpurl = null;
@@ -850,8 +879,8 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
                 }
                 if (error_found) {
                     cr = new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR, error_message, stepMeta);
-                }else {
-                    cr=new CheckResult(CheckResultInterface.TYPE_RESULT_OK,BaseMessages.getString(PKG,"StarRocksKettleConnectorMeta.CheckResult.CorrectTypeMapping"),stepMeta);
+                } else {
+                    cr = new CheckResult(CheckResultInterface.TYPE_RESULT_OK, BaseMessages.getString(PKG, "StarRocksKettleConnectorMeta.CheckResult.CorrectTypeMapping"), stepMeta);
                 }
                 remarks.add(cr);
 

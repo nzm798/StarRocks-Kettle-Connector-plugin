@@ -46,7 +46,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
 
         try {
             // Long a = new Long(8);
-            //Long b = new Long(80);
+            // Long b = new Long(80);
             // Object[] r = new Object[]{(Object) a, (Object) "NIUNIU"};
             Object[] r = getRow(); // Get row from input rowset & set row busy!
             if (r == null) { // no more input to be expected...
@@ -310,6 +310,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 .database(meta.getDatabasename())
                 .table(meta.getTablename())
                 .streamLoadDataFormat(dataFormat)
+                .chunkLimit(meta.getChunkLimit())
                 .enableUpsertDelete(meta.getEnableUpsertDelete());
         // Add the '__op' field
         if (data.columns != null) {
@@ -374,9 +375,12 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                 .username(meta.getUser())
                 .password(meta.getPassword())
                 .cacheMaxBytes(meta.getMaxbytes())
+                .ioThreadCount(meta.getIoThreadCount())
+                .waitForContinueTimeoutMs(meta.getWaitForContinueTimeout())
                 .scanningFrequency(meta.getScanningFrequency())
                 .connectTimeout(meta.getConnecttimeout())
                 .version(meta.getStarRocksQueryVisitor().getStarRocksVersion())
+                .maxRetries(0)
                 .expectDelayTime(expectDelayTime)
                 .addHeaders(streamLoadProperties)
                 .addHeader("timeout", String.valueOf(meta.getTimeout()))

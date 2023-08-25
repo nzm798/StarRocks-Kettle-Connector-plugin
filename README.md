@@ -600,4 +600,3 @@ StarRocks > select * from detailDemo;
 - kttle版本依赖
 - JDBC加载多个地址
 - Starrocks的时间类型数据是如何传输的
-- 异常处理，多条数据添加出现版本提交太多的情况
