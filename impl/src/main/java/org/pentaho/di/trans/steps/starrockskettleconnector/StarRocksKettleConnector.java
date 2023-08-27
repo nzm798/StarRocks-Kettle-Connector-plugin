@@ -148,7 +148,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                     Boolean boolenaValue;
                     if (sourceMeta.isStorageBinaryString()) {
                         String binaryBoolean = new String((byte[]) r, StandardCharsets.UTF_8);
-                        boolenaValue = binaryBoolean.equals("1") || binaryBoolean.equals("true") || binaryBoolean.equals("True");
+                        boolenaValue = binaryBoolean.equals("1") || binaryBoolean.equals("true") || binaryBoolean.equals("True") || binaryBoolean.equals("TRUE");
                     } else {
                         boolenaValue = sourceMeta.getBoolean(r);
                     }
