@@ -28,7 +28,7 @@ StarRocks Kettle Connector实现了Kettle的一个插件，它用于在StarRocks
 
 ## Kettle安装
 
-如果已经装有Ｋｅｔｔｌｅ可跳过此步骤。
+如果已经装有Kettle可跳过此步骤。
 
 首先，需要从Github上下载对应版本的[Kettle源码](https://github.com/pentaho/pentaho-kettle)，并根据Readme构建Kettle项目。Kettle项目使用的是Maven框架，需要如下准备：
 
