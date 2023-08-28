@@ -585,18 +585,19 @@ StarRocks > select * from detailDemo;
 - 只支持CSV和JSON两种数据格式。
 - 暂不支持列数据计算，只可通过在Kettle中增加相关步骤进行过滤转换。
 
-## 目前还未实现
-- 没有添加addHeaders(getSinkStreamLoadProperties())。未获取多余的StarRocks的参数配置。
-- 如果想要实现表格中的一部分数据导入StarRocks中的一部分，中间要加上一个过滤步骤。
-- 对于数据的更新插入和删除功能还没有实现分别的删除和更新插入，只能单独实现。todo
+## 注意事项
+
+- kttle版本尽量使用最近版本。
+- 目前只支持StarRocks的版本为2.4以上，只实现了v2。
 - 在kettle中现实的FieldTable名称应该和数据库的名称一样。
+- 映射需要实现目标表和源表的字段顺序正确，如果对应不对则需更改StarRocks目标表的字段顺序
+- JDBC地址只用于从fe节点中获取数据库表信息，只需添加一个地址即可。
+- Starrocks的·Timestamp·时间类型处理可能会出现问题，尽量使用Date数据类型。
+
+## 目前还未实现
+- 没有添加addHeaders(getSinkStreamLoadProperties())，不能自主配置StarRocks Stream Load其余配置参数。
+- 如果想要实现源数据中的一部分数据导入StarRocks中，需要在两步骤之间加入一个过滤步骤。
+- 对于数据的更新插入和删除功能还没有实现分别的删除和更新插入，只能单独的删除或更新插入。
 - 可以尝试根据dialog中的stepname命名.labelPrefix()，
 - **在ui中可以实现自动搜索目标数据库中的表。（还未实现）**
-- 映射需要实现目标表和源表的字段顺序正确，如果对应不对则需更改StarRocks目标表的字段顺序
-- 目前只支持StarRocks的版本为2.4以上，只实现了v2。
-
-
-- 获取不到ErrorUrl得不到Errorlog。
-- kttle版本依赖
-- JDBC加载多个地址
-- Starrocks的时间类型数据是如何传输的
+- Kettle中自己实现了一套日志输出功能，未能将Stream Load sdk中的日志输出，只能获取抛出的错误信息。

@@ -286,7 +286,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
     public StarRocksISerializer getSerializer(StarRocksKettleConnectorMeta meta) {
         StarRocksISerializer serializer;
         if (meta.getFormat().equals("CSV")) {
-            serializer = new StarRocksCsvSerializer(meta.getColumnSeparator()); // 现在使用默认的，作为列分割符，//TODO：加入分割符
+            serializer = new StarRocksCsvSerializer(meta.getColumnSeparator());
         } else if (meta.getFormat().equals("JSON")) {
             serializer = new StarRocksJsonSerializer(meta.getFieldTable());
         } else {

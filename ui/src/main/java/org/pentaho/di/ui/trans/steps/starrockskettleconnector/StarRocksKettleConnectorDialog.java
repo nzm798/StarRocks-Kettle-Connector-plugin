@@ -155,7 +155,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
                 input.setChanged();
             }
         };
-        // 从Format开始没有添加
+
         FocusListener lsFocusLost = new FocusAdapter() {
             @Override
             public void focusLost(FocusEvent focusEvent) {
@@ -712,7 +712,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
                 cancel();
             }
         });
-        // TODO：可以添加数据库的名称获取
+
 
         // Set the shell size, based upon previous time...
         setSize();
