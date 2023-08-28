@@ -189,7 +189,7 @@ DISTRIBUTED BY HASH(`id`);
 
 > **说明**
 >
-> 您可以通过 [SHOW FRONTENDS](https://docs.starrocks.io/zh-cn/latest/sql-reference/sql-statements/Administration/SHOW FRONTENDS) 命令查看 FE 节点的 IP 地址和 HTTP 端口号。
+> 您可以通过 [SHOW FRONTENDS](https://docs.starrocks.io/zh-cn/latest/sql-reference/sql-statements/Administration/SHOW%20FRONTENDS) 命令查看 FE 节点的 IP 地址和 HTTP 端口号。
 
 此处**列分割符**与上一步**CSV文件输入**中的分隔符并无关联可随意指定。当连接StarRocks时不需**密码**时填写为空即可。
 
