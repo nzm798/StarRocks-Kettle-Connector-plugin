@@ -101,11 +101,6 @@ public class StarRocksKettleConnectorWriterTest {
     @Test
     public void testStreamLoad() throws KettleException{
         // lder.init(lmeta,ldata);
-//        byte[] id=new String("1").getBytes();
-//        byte[] name=new String("Lili").getBytes();
-//        byte[] sorce=new String("89.2").getBytes();
-//        lder.putRow(rm,new Object[]{id,name,sorce});
-
         // lder.processRow(lmeta,ldata);
     }
 }

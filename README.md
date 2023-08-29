@@ -587,12 +587,13 @@ StarRocks > select * from detailDemo;
 
 ## 注意事项
 
-- kttle版本尽量使用最近版本。
+- kttle版本尽量使用最近版本，9.3.0.0-349开始更新为Java11.
 - 目前只支持StarRocks的版本为2.4以上，只实现了v2。
 - 在kettle中现实的`FieldTable`名称应该和数据库的名称一样。
 - 映射需要实现目标表和源表的字段顺序正确，如果对应不对则需更改StarRocks目标表的字段顺序
 - JDBC地址只用于从`fe`节点中获取数据库表信息，只需添加一个地址即可。
 - Starrocks的`Timestamp`时间类型处理可能会出现问题，尽量使用`Date`数据类型。
+- Kettle在进行Check时StarRocks中的`largeint`会被获取成`UNKNOW`，`boolean`会被映射成`tinyint`，这两处错误可忽略。
 
 ## 目前还未实现
 - 没有添加`addHeaders(getSinkStreamLoadProperties())`，不能自主配置`StarRocks Stream Load`其余配置参数。

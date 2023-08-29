@@ -20,7 +20,7 @@ public class StarRocksQueryVisitor {
     }
 
     public List<String> getAllTables() throws SQLException, ClassNotFoundException {
-        final String query = "select `TABLE_NAME` from `information_schema`.`TABLES` where `TABLE_SCHEMA`=? and `TABLE_TYPE`=`BASE TABLE`";
+        final String query = "select `TABLE_NAME` from `information_schema`.`TABLES` where `TABLE_SCHEMA`=?;";
         List<String> tablenames = new ArrayList<>();
         PreparedStatement stmt = jdbcConnProvider.getConnection().prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
         stmt.setString(1, this.database);
