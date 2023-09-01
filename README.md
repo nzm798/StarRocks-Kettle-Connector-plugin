@@ -596,9 +596,11 @@ StarRocks > select * from detailDemo;
 - Kettle在进行Check时StarRocks中的`largeint`会被获取成`UNKNOW`，`boolean`会被映射成`tinyint`，这两处错误可忽略。
 
 ## 目前还未实现
-- 没有添加`addHeaders(getSinkStreamLoadProperties())`，不能自主配置`StarRocks Stream Load`其余配置参数。
+- 添加`addHeaders(getSinkStreamLoadProperties())`，不能自主配置`StarRocks Stream Load`其余配置参数。
 - 如果想要实现源数据中的一部分数据导入StarRocks中，需要在两步骤之间加入一个过滤步骤。
 - 对于数据的更新插入和删除功能还没有实现分别的删除和更新插入，只能单独的删除或更新插入。
 - 可以尝试根据dialog中的`stepname`命名`.labelPrefix()`，
 - **在ui中可以实现自动搜索目标数据库中的表。**
 - Kettle中自己实现了一套日志输出功能，未能将`Stream Load sdk`中的日志输出，只能获取抛出的错误信息。
+- Kettle自动创建StarRocks表。
+- 实现StarRocks配置日志输出位置。
