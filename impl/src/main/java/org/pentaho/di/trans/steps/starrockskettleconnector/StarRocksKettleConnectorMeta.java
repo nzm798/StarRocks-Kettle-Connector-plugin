@@ -487,6 +487,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
     public long getChunkLimit() {
         return 3 * GIGA_BYTES_SCALE;
     }
+
     /**
      * @return Stream load thread count.
      */
@@ -504,6 +505,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         }
         return Math.min(waitForContinueTimeoutMs, 600000);
     }
+
     public void setDefault() {
         fieldTable = null;
         httpurl = null;
@@ -991,7 +993,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             put(ValueMetaInterface.TYPE_NUMBER, Arrays.asList(StarRocksDataType.DOUBLE, StarRocksDataType.FLOAT));
             put(ValueMetaInterface.TYPE_STRING, Arrays.asList(StarRocksDataType.VARCHAR, StarRocksDataType.CHAR, StarRocksDataType.STRING, StarRocksDataType.JSON));
             put(ValueMetaInterface.TYPE_DATE, Arrays.asList(StarRocksDataType.DATE, StarRocksDataType.DATETIME));
-            put(ValueMetaInterface.TYPE_BOOLEAN, Arrays.asList(StarRocksDataType.BOOLEAN));
+            put(ValueMetaInterface.TYPE_BOOLEAN, Arrays.asList(StarRocksDataType.BOOLEAN, StarRocksDataType.TINYINT));
             put(ValueMetaInterface.TYPE_INTEGER, Arrays.asList(StarRocksDataType.TINYINT, StarRocksDataType.SMALLINT, StarRocksDataType.INT, StarRocksDataType.BIGINT));
             put(ValueMetaInterface.TYPE_BIGNUMBER, Arrays.asList(StarRocksDataType.LARGEINT, StarRocksDataType.DECIMAL));
             put(ValueMetaInterface.TYPE_TIMESTAMP, Arrays.asList(StarRocksDataType.DATETIME, StarRocksDataType.DATE));
