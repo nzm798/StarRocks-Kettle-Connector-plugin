@@ -367,6 +367,17 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
             }
         }
 
+        if (meta.getHeaderProperties() != null && meta.getHeaderProperties().length() != 0) {
+            try {
+                String[] properties = meta.getHeaderProperties().split(";");
+                for (String property : properties) {
+                    streamLoadProperties.put(property.split(":")[0], property.split(":")[0]);
+                }
+            } catch (RuntimeException e) {
+                throw new RuntimeException(BaseMessages.getString(PKG, "StarRocksKettleConnectorMeta.Exception.UnableProperties"));
+            }
+        }
+
         StreamLoadProperties.Builder builder = StreamLoadProperties.builder()
                 .labelPrefix("StarRocks-Kettle")
                 .loadUrls(meta.getHttpurl().toArray(new String[0]))

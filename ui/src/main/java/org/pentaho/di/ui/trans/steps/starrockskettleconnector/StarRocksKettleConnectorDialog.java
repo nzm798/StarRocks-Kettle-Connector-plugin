@@ -118,6 +118,10 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
     private TextVar wScanningFrequency;
     private FormData fdlScanningFrequency, fdScanningFrequency;
 
+    private Label wlHeaderProperties;
+    private TextVar wHeaderProperties;
+    private FormData fdlHeaderProperties,fdHeaderProperties;
+
     private Label wlReturn;
     private TableView wReturn;
     private FormData fdlReturn, fdReturn;
@@ -484,6 +488,25 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         fdTimeout.right = new FormAttachment(100, 0);
         wTimeout.setLayoutData(fdTimeout);
 
+        // Stream Load Properties line...
+        wlHeaderProperties = new Label(shell, SWT.RIGHT);
+        wlHeaderProperties.setText(BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.HeaderProperties.Label"));
+        props.setLook(wlHeaderProperties);
+        fdlHeaderProperties = new FormData();
+        fdlHeaderProperties.left = new FormAttachment(0, 0);
+        fdlHeaderProperties.right = new FormAttachment(middle, -margin);
+        fdlHeaderProperties.top = new FormAttachment(wTimeout, margin * 2);
+        wlHeaderProperties.setLayoutData(fdlHeaderProperties);
+
+        wHeaderProperties = new TextVar(transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
+        props.setLook(wHeaderProperties);
+        wHeaderProperties.addModifyListener(lsMod);
+        fdHeaderProperties = new FormData();
+        fdHeaderProperties.left = new FormAttachment(middle, 0);
+        fdHeaderProperties.top = new FormAttachment(wTimeout, margin * 2);
+        fdHeaderProperties.right = new FormAttachment(100, 0);
+        wHeaderProperties.setLayoutData(fdHeaderProperties);
+
         // Partial Update line...
         wlPartialUpdate = new Label(shell, SWT.RIGHT);
         wlPartialUpdate.setText(BaseMessages.getString(PKG, "StarRocksKettleConnectorDialog.PartialUpdate.Label"));
@@ -491,7 +514,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         fdlPartialUpdate = new FormData();
         fdlPartialUpdate.left = new FormAttachment(0, 0);
         fdlPartialUpdate.right = new FormAttachment(middle, -margin);
-        fdlPartialUpdate.top = new FormAttachment(wTimeout, margin * 2);
+        fdlPartialUpdate.top = new FormAttachment(wHeaderProperties, margin * 2);
         wlPartialUpdate.setLayoutData(fdlPartialUpdate);
 
         wPartialUpdate = new Button(shell, SWT.CHECK | SWT.LEFT);
@@ -500,7 +523,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         fdPartialUpdate = new FormData();
         fdPartialUpdate.left = new FormAttachment(middle, 0);
         fdPartialUpdate.right = new FormAttachment(100, 0);
-        fdPartialUpdate.top = new FormAttachment(wTimeout, margin * 2);
+        fdPartialUpdate.top = new FormAttachment(wHeaderProperties, margin * 2);
         wPartialUpdate.setLayoutData(fdPartialUpdate);
         wPartialUpdate.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -705,6 +728,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         wTimeout.addSelectionListener(lsDef);
         wPartialColumns.addSelectionListener(lsDef);
         wUpsertorDelete.addSelectionListener(lsDef);
+        wHeaderProperties.addSelectionListener(lsDef);
 
         shell.addShellListener(new ShellAdapter() {
             @Override
@@ -871,6 +895,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         wPartialUpdate.setSelection(input.getPartialUpdate());
         wEnableUpsertDelete.setSelection(input.getEnableUpsertDelete());
         wUpsertorDelete.setText(Const.NVL(input.getUpsertOrDelete(), ""));
+        wHeaderProperties.setText(Const.NVL(input.getHeaderProperties(),""));
 
         if (input.getPartialcolumns() != null) {
             wPartialColumns.setText(Const.NVL(String.join(",", input.getPartialcolumns()), ""));
@@ -1000,6 +1025,7 @@ public class StarRocksKettleConnectorDialog extends BaseStepDialog implements St
         inf.setConnecttimeout(Integer.valueOf(wConnectTimeout.getText()));
         inf.setTimeout(Integer.valueOf(wTimeout.getText()));
         inf.setPartialupdate(wPartialUpdate.getSelection());
+        inf.setHeaderProperties(wHeaderProperties.getText());
         if (wPartialColumns.getText() != null && wPartialColumns.getText().length() != 0) {
             inf.setPartialcolumns(wPartialColumns.getText().split(","));
         } else {

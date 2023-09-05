@@ -174,6 +174,10 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
      * The frequency of Stream load writes.
      */
     private long scanningFrequency;
+    /**
+     * The Stream Load properties.
+     */
+    private String headerProperties;
 
     /**
      * @param httpurl Url of the stream load.
@@ -506,6 +510,17 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         return Math.min(waitForContinueTimeoutMs, 600000);
     }
 
+    /**
+     * @param headerProperties Stream Load properties.
+     */
+    public void setHeaderProperties(String headerProperties) {
+        this.headerProperties = headerProperties;
+    }
+
+    public String getHeaderProperties() {
+        return this.headerProperties;
+    }
+
     public void setDefault() {
         fieldTable = null;
         httpurl = null;
@@ -527,6 +542,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         enableupsertdelete = false;
         upsertordelete = "";
         scanningFrequency = 50L;
+        headerProperties = "";
 
         allocate(0);
     }
@@ -553,7 +569,9 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
     private void readData(Node stepnode) throws KettleXMLException {
         try {
             String httpurl1 = XMLHandler.getTagValue(stepnode, "httpurl");
-            httpurl = Arrays.asList(httpurl1.split(";"));
+            if (httpurl1 != null && httpurl1.length() != 0) {
+                httpurl = Arrays.asList(httpurl1.split(";"));
+            }
             jdbcurl = XMLHandler.getTagValue(stepnode, "jdbcurl");
             databasename = XMLHandler.getTagValue(stepnode, "databasename");
             tablename = XMLHandler.getTagValue(stepnode, "tablename");
@@ -582,6 +600,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
 
             upsertordelete = XMLHandler.getTagValue(stepnode, "upsertordelete");
             scanningFrequency = Long.valueOf(XMLHandler.getTagValue(stepnode, "scanningFrequency"));
+            headerProperties = XMLHandler.getTagValue(stepnode, "headerProperties");
             // Field data mapping
             int nrvalues = XMLHandler.countNodes(stepnode, "mapping");
             allocate(nrvalues);
@@ -631,6 +650,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
         retval.append("    ").append(XMLHandler.addTagValue("enableupsertdelete", enableupsertdelete));
         retval.append("    ").append(XMLHandler.addTagValue("upsertordelete", upsertordelete));
         retval.append("    ").append(XMLHandler.addTagValue("scanningFrequency", scanningFrequency));
+        retval.append("    ").append(XMLHandler.addTagValue("headerProperties", headerProperties));
 
         for (int i = 0; i < fieldTable.length; i++) {
             retval.append("      <mapping>").append(Const.CR);
@@ -645,7 +665,9 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
     public void readRep(Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases) throws KettleException {
         try {
             String httpurl1 = rep.getStepAttributeString(id_step, "httpurl");
-            httpurl = Arrays.asList(httpurl1.split(";"));
+            if (httpurl1 != null && httpurl1.length() != 0) {
+                httpurl = Arrays.asList(httpurl1.split(";"));
+            }
             jdbcurl = rep.getStepAttributeString(id_step, "jdbcurl");
             databasename = rep.getStepAttributeString(id_step, "databasename");
             tablename = rep.getStepAttributeString(id_step, "tablename");
@@ -672,6 +694,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             enableupsertdelete = rep.getStepAttributeBoolean(id_step, "enableupsertdelete");
             upsertordelete = rep.getStepAttributeString(id_step, "upsertordelete");
             scanningFrequency = Long.valueOf(rep.getStepAttributeString(id_step, "scanningFrequency"));
+            headerProperties = rep.getStepAttributeString(id_step, "headerProperties");
             int nrvalues = rep.countNrStepAttributes(id_step, "stream_name");
 
             allocate(nrvalues);
@@ -717,6 +740,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             rep.saveStepAttribute(id_transformation, id_step, "enableupsertdelete", enableupsertdelete);
             rep.saveStepAttribute(id_transformation, id_step, "upsertordelete", upsertordelete);
             rep.saveStepAttribute(id_transformation, id_step, "scanningFrequency", scanningFrequency);
+            rep.saveStepAttribute(id_transformation, id_step, "headerProperties", headerProperties);
 
             for (int i = 0; i < fieldTable.length; i++) {
                 rep.saveStepAttribute(id_transformation, id_step, i, "stream_name", fieldTable[i]);

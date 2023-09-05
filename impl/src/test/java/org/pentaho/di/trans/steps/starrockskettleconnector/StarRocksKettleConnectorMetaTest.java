@@ -61,7 +61,7 @@ public class StarRocksKettleConnectorMetaTest {
     public void testRoundTrip() throws KettleException {
         List<String> attributes = Arrays.asList("httpurl", "jdbcurl", "databasename", "tablename", "user", "password", "format","columnseparator","jsonpaths","maxbytes","scanningFrequency",
                 "max_filter_ratio", "connecttimeout", "timeout", "stream_name", "field_name", "partialupdate", "partialcolumns", "enableupsertdelete",
-                "upsertordelete");
+                "upsertordelete","headerProperties");
 
         Map<String, String> getterMap = new HashMap<>();
         getterMap.put("httpurl", "getHttpurl");
@@ -84,6 +84,7 @@ public class StarRocksKettleConnectorMetaTest {
         getterMap.put("partialcolumns", "getPartialcolumns");
         getterMap.put("enableupsertdelete", "getEnableUpsertDelete");
         getterMap.put("upsertordelete", "getUpsertOrDelete");
+        getterMap.put("headerProperties","getHeaderProperties");
 
         Map<String, String> setterMap = new HashMap<>();
         setterMap.put("httpurl", "setHttpurl");
@@ -106,6 +107,7 @@ public class StarRocksKettleConnectorMetaTest {
         setterMap.put("partialcolumns", "setPartialcolumns");
         setterMap.put("enableupsertdelete", "setEnableupsertdelete");
         setterMap.put("upsertordelete", "setUpsertOrDelete");
+        setterMap.put("headerProperties","setHeaderProperties");
 
         Map<String, FieldLoadSaveValidator<?>> fieldLoadSaveValidatorAttributeMap =
                 new HashMap<String, FieldLoadSaveValidator<?>>();
