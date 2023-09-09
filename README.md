@@ -1,4 +1,4 @@
-# StarRocks-Kettle-Connector-plugin Readme
+# StarRocks-Kettle-Connector plugin Readme
 
 # Why
 
@@ -39,6 +39,8 @@ StarRocks Kettle Connector实现了Kettle的一个插件，它用于在StarRocks
 最后生成Kettle应用压缩包：<源码目录>\assemblies\pdi-ce\target\pdi-ce-x.x.x.x-xxx.zip
 
 ![img](image/2.jpg)
+
+直接可以在[Kettle官网](https://www.hitachivantara.com/en-us/products/pentaho-platform/data-integration-analytics/pentaho-community-edition.html)下载，点击`Download Now`在下列菜单中即可找到`pdi-ce-x.x.x.x-xxx.zip`压缩包下载。
 
 ## Kettle启动
 
@@ -82,7 +84,7 @@ StarRocks Kettle Connector实现了Kettle的一个插件，它用于在StarRocks
 | 导入作业最大容错率-Max Filter Ratio             | 否       | 0                          | String   | 用于指定导入作业的最大容错率，即导入作业能够容忍的因数据质量不合格而过滤掉的数据行所占的最大比例。取值范围：0~1。默认值：0。更多说明，请参见 [STREAM LOAD](https://docs.starrocks.io/zh-cn/latest/sql-reference/sql-statements/data-manipulation/STREAM%20LOAD#opt_properties)。 |
 | StarRocks连接超时时间-Connect Timeout           | 否       | 1000                       | String   | 连接 `Http-url` 的超时时间。取值范围：[100, 60000]。         |
 | Stream Load载入数据超时时间-Stream Load Timeout | 否       | 600                        | String   | Stream Load 超时时间，单位为秒。                             |
-| Stream Load 属性-Stream Load Properties         | 否       | 无                         | String   | Stream Load 的参数，控制导入行为，支持的参数和说明，请参见 [STREAM LOAD](https://docs.starrocks.io/zh-cn/latest/sql-reference/sql-statements/data-manipulation/STREAM LOAD)。<br />参数的名称和值需要用`:`隔开，各参数之间用`;`隔开。例如：`key1:value1;key2:value2` |
+| Stream Load 属性-Stream Load Properties         | 否       | 无                         | String   | Stream Load 的参数，控制导入行为，支持的参数和说明，请参见 [STREAM LOAD](https://docs.starrocks.io/zh-cn/latest/sql-reference/sql-statements/data-manipulation/STREAM%20LOAD)。<br />参数的名称和值需要用`:`隔开，各参数之间用`;`隔开。例如：`key1:value1;key2:value2` |
 | 部分导入-Partial Update                         | 否       | 否                         |          | StarRocks v2.2 起，主键模型表支持部分更新，可以选择只更新部分指定的列。若勾选实现部分导入需要在“部分导入行”中填写要导入的列名。 |
 | 部分导入行-Partial Update Columns               | 否       | 无                         | String   | 需要部分更新的列名。需要填写所要写入的目标表中对应的列名。各列名之间要以英文逗号隔开`,`，例如：`col1,col2,col3` |
 | 是否支持更新和删除-Enable Upsert Delete         | 否       | 无                         |          | StarRocks 目前支持 `UPSERT` 和 `DELETE `操作，不支持一次作业区分`UPSERT`和`DELETE`，只能对一次导入单独实现`UPSERT`和`DELETE`。<br />  **UPSERT**: 该操作用于插入或更新数据。如果数据已存在（基于主键/唯一键），它将更新该数据；如果数据不存在，它将插入新数据。<br /> **DELETE**: 该操作用于删除符合条件的数据记录。需要指定删除的条件，满足该条件的所有记录都将被删除。 |
