@@ -200,13 +200,13 @@ DISTRIBUTED BY HASH(`id`);
 
 ![](image/14.jpg)
 
-4. 点击开始按钮执行导入作业
+3. 点击开始按钮执行导入作业
 
 点击左上的开始按钮则开始转换，转换成功如下图所示。
 
 ![img](image/7.jpg)
 
-5. 查询导入结果
+4. 查询导入结果
 
 ```SQL
 StarRocks > select * from student;
