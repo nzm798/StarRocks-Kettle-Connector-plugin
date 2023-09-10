@@ -1019,7 +1019,7 @@ public class StarRocksKettleConnectorMeta extends BaseStepMeta implements StarRo
             put(ValueMetaInterface.TYPE_DATE, Arrays.asList(StarRocksDataType.DATE, StarRocksDataType.DATETIME));
             put(ValueMetaInterface.TYPE_BOOLEAN, Arrays.asList(StarRocksDataType.BOOLEAN, StarRocksDataType.TINYINT));
             put(ValueMetaInterface.TYPE_INTEGER, Arrays.asList(StarRocksDataType.TINYINT, StarRocksDataType.SMALLINT, StarRocksDataType.INT, StarRocksDataType.BIGINT));
-            put(ValueMetaInterface.TYPE_BIGNUMBER, Arrays.asList(StarRocksDataType.LARGEINT, StarRocksDataType.DECIMAL));
+            put(ValueMetaInterface.TYPE_BIGNUMBER, Arrays.asList(StarRocksDataType.LARGEINT, StarRocksDataType.DECIMAL,StarRocksDataType.UNKNOWN));
             put(ValueMetaInterface.TYPE_TIMESTAMP, Arrays.asList(StarRocksDataType.DATETIME, StarRocksDataType.DATE));
             put(ValueMetaInterface.TYPE_INET, Arrays.asList(StarRocksDataType.STRING));
         }
