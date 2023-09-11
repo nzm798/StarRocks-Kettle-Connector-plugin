@@ -399,13 +399,13 @@ StarRocks > select * from student;
 5 rows in set (0.00 sec)
 ~~~
 
-4. 导入数据
+3. 导入数据
 
 通过导入，把 `example2.csv` 文件中 `id` 为 `2` 的数据从 `student` 表中删除。
 
 ![](image/19.jpg)
 
-5. 查询数据
+4. 查询数据
 
 导入完成后，查询 `table2` 表的数据，如下所示：
 
