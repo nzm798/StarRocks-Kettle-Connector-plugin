@@ -580,7 +580,9 @@ StarRocks > select * from detailDemo;
 10 rows in set (0.01 sec)
 ~~~
 
+### 错误日志
 
+当导入数据出现错误时，`Kettle`控制台中只会输出错误信息，若想查看详细的日志记录可在`data-integration\logs\pdi.log`中查看。其中包括`Kettle`的运行信息和`StarRocks`的`Stream Load`相关的`DEBUGE`信息。
 
 # Limitation
 
