@@ -219,7 +219,7 @@ public class StarRocksKettleConnector extends BaseStep implements StepInterface 
                         String timestampStr = new String((byte[]) r, StandardCharsets.UTF_8);
                         timestampValue = new java.sql.Timestamp(sourceTimestampFormatter.parse(timestampStr).getTime());
                     } else {
-                        timestampValue = (Timestamp) r;
+                        timestampValue = (Timestamp) sourceMeta.getDate(r);
                     }
                     return timeStampFormatter.format(timestampValue);
                 case ValueMetaInterface.TYPE_BINARY:
