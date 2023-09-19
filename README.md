@@ -587,7 +587,6 @@ StarRocks > select * from detailDemo;
 # Limitation
 
 - 不支持`at-least-once`和`exactly-once`导入方式：Kettle中没有数据回滚和异常重试的机制，kettle在遇到导入错误时会直接停止数据的导入任务。
-- 只支持`CSV`和`JSON`两种数据格式：在使用`Stream Load`向`StarRocks`导入数据时只采用这两种数据格式。导入步骤的上游源数据则可是Kettle中的任意数据格式。
 - 暂不支持列数据计算，只可通过在Kettle中增加相关步骤进行过滤转换。
 - Kettle中暂不支持处理`HLL`和`Bitmap`位图这两种高级数据结构。
 
@@ -598,6 +597,7 @@ StarRocks > select * from detailDemo;
 - 映射需要实现表字段和源字段的字段顺序正确，如果对应不对则保持源字段顺序不变，更改表字段顺序使其与源字段对应。
 - JDBC地址只用于从`fe`节点中获取数据库表信息，只需添加一个地址即可。
 - Kettle在进行Check时StarRocks中的`largeint`会被获取成`UNKNOW`，`boolean`会被映射成`tinyint`，这两处错误可忽略。
+- 只支持`CSV`和`JSON`两种数据格式：在使用`Stream Load`向`StarRocks`导入数据时只采用这两种数据格式。导入步骤的上游源数据则可是Kettle中的任意数据格式。
 
 ## 目前还未实现
 - 如果想要实现源数据中的一部分数据导入StarRocks中，需要在两步骤之间加入一个过滤步骤，将要部分导入的列行保留其余列过滤。
@@ -605,3 +605,4 @@ StarRocks > select * from detailDemo;
 - 可以尝试根据dialog中的`stepname`命名`.labelPrefix()`，
 - 在ui中可以实现自动搜索目标数据库中的表。
 - Kettle自动创建StarRocks数据库表。
+- 在传入数据的时候添加上op列对其进行操作。
