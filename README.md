@@ -606,3 +606,5 @@ StarRocks > select * from detailDemo;
 - 在ui中可以实现自动搜索目标数据库中的表。
 - Kettle自动创建StarRocks数据库表。
 - 在传入数据的时候添加上op列对其进行操作。
+- 将项目交到真实用户进行测试，根据测试反馈完善项目。
+- 支持实现HLL和BITMAP类型的数据导入。
